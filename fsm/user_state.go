@@ -2,14 +2,14 @@ package fsm
 
 import (
 	"fmt"
+	"migtationbot/logger"
 	"sync"
 )
 
 type UserStateStorage interface {
 	Exists(userID int64) (bool, error)
 	Get(userID int64) (State, error)
-	Push(userID int64,
-		stateID State) error
+	Push(userID int64, stateID State) error
 	Reset(userID int64, initial State) error
 	Back(userID int64) (State, error)
 }
@@ -25,13 +25,15 @@ func (u *userStateStorage) Push(userID int64, state State) error {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	u.Storage[userID] = append(u.Storage[userID], state)
+	logger.Infof("user storage: %+v", u.Storage)
 	return nil
 }
+
 func (u *userStateStorage) Get(userID int64) (State, error) {
 	u.mu.RLock()
 	defer u.mu.RUnlock()
 	stack, ok := u.Storage[userID]
-	if !ok || len(stack) == 0 {
+	if !ok {
 		return State{}, fmt.Errorf("no state for userID: %d", userID)
 	}
 	return stack[len(stack)-1], nil
@@ -47,12 +49,13 @@ func (u *userStateStorage) Back(userID int64) (State, error) {
 		return stack[0], nil
 	}
 	u.Storage[userID] = stack[:len(stack)-1]
+	logger.Infof("userID: %d storage: %+v", userID, u.Storage)
 	return u.Storage[userID][len(u.Storage[userID])-1], nil
 }
 func (u *userStateStorage) Exists(userID int64) (bool, error) {
 	u.mu.RLock()
 	defer u.mu.RUnlock()
-	
+
 	stack, ok := u.Storage[userID]
 	return ok && len(stack) > 0, nil
 }

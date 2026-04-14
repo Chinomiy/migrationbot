@@ -6,30 +6,29 @@ import (
 	"github.com/go-telegram/bot/models"
 )
 
-// пока только страны реализовано
 func MainMenuKeyboard() *models.InlineKeyboardMarkup {
 	return &models.InlineKeyboardMarkup{
 		InlineKeyboard: [][]models.InlineKeyboardButton{
 			{
 				{
-					Text:         "🌍 Выбрать страну",
-					CallbackData: string(app.StateCountryMenu),
+					Text:         app.MainMenuCountry,
+					CallbackData: app.CallbackCountryMenu,
 				},
 			},
 			{
 				{
-					Text:         "💼 Личный кабинет",
-					CallbackData: "123",
+					Text:         app.MainMenuAccount,
+					CallbackData: app.CallbackAccount,
 				},
 			},
 			{
 				{
-					Text:         "📚 FAQ",
-					CallbackData: "242",
+					Text:         app.MainMenuFAQ,
+					CallbackData: "242", // доделать просто экран с текстом + назад
 				},
 				{
-					Text:         "🛠 Поддержка",
-					CallbackData: "5215",
+					Text:         app.MainMenuHelps,
+					CallbackData: "5215", // доделать, просто экран с моим тг + назад
 				},
 			},
 		},

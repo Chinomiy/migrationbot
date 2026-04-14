@@ -11,6 +11,9 @@ const (
 	StateManagerCreateCountry fsm.StateID = "manager_create_country"
 	StateCountry              fsm.StateID = "country"
 	StateCountryTrip          fsm.StateID = "country_trip"
+	StateAccount              fsm.StateID = "account"
+	StateFavorite             fsm.StateID = "favorite"
+	StateBookmarkDetails      fsm.StateID = "bookmark_details"
 )
 
 const (
@@ -20,4 +23,9 @@ const (
 	CallbackCountryTripMenu    = "country_trip_menu"
 	CallbackCountry            = "country"
 	CallbackBack               = "back"
+	CallbackAccount            = "account"
+	CallbackAddFavorite        = "add_favorite"
+	CallbackFavorite           = "favorite"
+	CallbackRemoveBookmark     = "remove_bookmark"
+	CallbackBookmarkDetails    = "bookmark_details"
 )

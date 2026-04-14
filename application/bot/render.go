@@ -1,10 +1,11 @@
-package handlers
+package bot
 
 import (
 	"context"
 	"migtationbot/application/app"
 	"migtationbot/application/keyboard"
 	"migtationbot/fsm"
+	"migtationbot/logger"
 
 	"github.com/go-telegram/bot"
 )
@@ -23,10 +24,15 @@ func (a *Application) renderState(
 			Text:        app.MainText,
 			ReplyMarkup: keyboard.MainMenuKeyboard(),
 		})
-		return err
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+		return nil
 	case app.StateCountryMenu:
 		countries, err := a.CountrySVC.List(ctx)
 		if err != nil {
+			logger.Error(err)
 			return err
 		}
 		_, err = a.B.EditMessageText(ctx, &bot.EditMessageTextParams{
@@ -35,6 +41,11 @@ func (a *Application) renderState(
 			Text:        app.CountryMenuText,
 			ReplyMarkup: keyboard.CountryMenu(countries),
 		})
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+		return nil
 	case app.StateCountry:
 		countries, err := a.CountrySVC.FindByCode(ctx, "")
 		if err != nil {
@@ -46,6 +57,42 @@ func (a *Application) renderState(
 			Text:        app.CountryMenuText,
 			ReplyMarkup: keyboard.CountryTripVariants(countries),
 		})
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+		return nil
+
+	case app.StateAccount:
+		_, err := a.B.EditMessageText(ctx, &bot.EditMessageTextParams{
+			ChatID:      userID,
+			MessageID:   msgID,
+			Text:        app.AccountMainMenuText,
+			ReplyMarkup: keyboard.AccountMainMenu(),
+		})
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+		return nil
+	case app.StateFavorite:
+		userBookmark, err := a.BookmarkSVc.GetUserFavorites(ctx, userID)
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+		_, err = a.B.EditMessageText(ctx, &bot.EditMessageTextParams{
+			ChatID:      userID,
+			MessageID:   msgID,
+			Text:        "Закладки:",
+			ReplyMarkup: keyboard.UserBookmarks(userBookmark),
+		})
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+		return nil
+
 	default:
 		_, err := a.B.EditMessageText(ctx, &bot.EditMessageTextParams{
 			ChatID:      userID,
@@ -53,7 +100,10 @@ func (a *Application) renderState(
 			Text:        app.MainText,
 			ReplyMarkup: keyboard.MainMenuKeyboard(),
 		})
-		return err
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+		return nil
 	}
-	return nil
 }

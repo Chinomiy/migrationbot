@@ -1,4 +1,4 @@
-package handlers
+package bot
 
 import (
 	"github.com/go-telegram/bot/models"
@@ -12,11 +12,4 @@ func getUserID(u *models.Update) int64 {
 		return u.Message.From.ID
 	}
 	return 0
-}
-
-func getCallbackData(u *models.Update) string {
-	if u.CallbackQuery != nil {
-		return u.CallbackQuery.Data
-	}
-	return ""
 }

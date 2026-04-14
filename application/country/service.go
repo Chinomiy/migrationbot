@@ -2,7 +2,6 @@ package country
 
 import (
 	"context"
-	"fmt"
 )
 
 type CountryService struct {
@@ -18,7 +17,7 @@ func (s *CountryService) FindByCode(ctx context.Context, code string) (*Country,
 
 	country, err := s.repo.GetByCode(ctx, code)
 	if err != nil {
-		return nil, fmt.Errorf(err.Error())
+		return nil, err
 	}
 	return country, nil
 }
@@ -56,7 +55,7 @@ func (s *CountryService) GetAllTrips(ctx context.Context) (TripType, error) {
 func (s *CountryService) GetCountryContentByTrip(ctx context.Context, code, callback string) (string, error) {
 	content, err := s.repo.GetContentByCallback(ctx, code, callback)
 	if err != nil {
-		return "", fmt.Errorf("failed to get content by callback: %w", err)
+		return "", err
 	}
 	return content, nil
 }

@@ -2,6 +2,7 @@ package fsm
 
 import (
 	"context"
+	"migtationbot/logger"
 ) // главный экран -> список стран -> выбор страны -> выбор типа поездки -> информация о поездке
 
 type StateID string
@@ -29,17 +30,18 @@ func New(initialStateName StateID,
 	}
 	return s
 }
-func (f *FSM) AddCallback(stateID StateID, callback Callback) { f.callbacks[stateID] = callback }
-func (f *FSM) AddCallbacks(cb map[StateID]Callback) {
-	for stateID, callback := range cb {
-		f.callbacks[stateID] = callback
-	}
-}
-func (f *FSM) Transition(ctx context.Context, userID int64, stateID StateID, args ...any) error {
+func (f *FSM) Transition(
+	ctx context.Context,
+	userID int64,
+	stateID StateID,
+	args ...any,
+) error {
 	state := State{ID: stateID, Data: args}
 	if err := f.userStates.Push(userID, state); err != nil {
+		// добавить логи чувствую есть подводные
 		return err
 	}
+	logger.Infof("user %d transitioned to state %s", userID, stateID)
 	if cb, ok := f.callbacks[stateID]; ok {
 		return cb(ctx, args...)
 	}

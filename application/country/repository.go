@@ -58,6 +58,7 @@ func (c *CountryRepository) GetByCodeUpdate(ctx context.Context, code string) (*
 	return c.getByCode(ctx, code, true)
 }
 func (c *CountryRepository) getByCode(ctx context.Context, code string, forUpdate bool) (*Country, error) {
+	const op = "CountryRepository.getByCode"
 	builder := psql.
 		Select(
 			"c.id",
@@ -74,7 +75,7 @@ func (c *CountryRepository) getByCode(ctx context.Context, code string, forUpdat
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("failed to build query: %w", err)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	var country Country
 	//r.ctxGetter.DefaultTrOrD
@@ -88,11 +89,12 @@ func (c *CountryRepository) getByCode(ctx context.Context, code string, forUpdat
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errCountryNotFound
 		}
-		return nil, fmt.Errorf("failed to query country: %w", err)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	return &country, nil
 }
 func (c *CountryRepository) GetCountryTrip(ctx context.Context, code string) (TripType, error) {
+	const op = "CountryRepository.GetCountryTrip"
 	builder := psql.
 		Select(
 			"tt.name",
@@ -105,30 +107,32 @@ func (c *CountryRepository) GetCountryTrip(ctx context.Context, code string) (Tr
 		OrderBy("tt.name ASC")
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return TripType{}, fmt.Errorf("failed to build query: %w", err)
+		return TripType{}, fmt.Errorf("%s: %w", op, err)
 	}
 	var tripType TripType
 	trip := make(map[string]string)
 	rows, err := c.db.Query(ctx, query, args...)
 	if err != nil {
-		return TripType{}, fmt.Errorf("failed to query country: %w", err)
+		return TripType{}, fmt.Errorf("%s: %w", op, err)
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var name string
 		var callback string
 		if err := rows.Scan(&name, &callback); err != nil {
-			return TripType{}, fmt.Errorf("failed to scan trip type: %w", err)
+			return TripType{}, fmt.Errorf("%s: %w", op, err)
 		}
 		trip[callback] = name
 	}
 	if err := rows.Err(); err != nil {
-		return TripType{}, fmt.Errorf("failed to scan trip type: %w", err)
+		return TripType{}, fmt.Errorf("%s: %w", op, err)
 	}
 	tripType.Data = trip
 	return tripType, nil
 }
 func (c *CountryRepository) List(ctx context.Context) (*[]Country, error) {
+	const op = "CountryRepository.List"
 	builder := psql.
 		Select(
 			countryColumnID,
@@ -141,11 +145,11 @@ func (c *CountryRepository) List(ctx context.Context) (*[]Country, error) {
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf(err.Error())
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	rows, err := c.db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf(err.Error())
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	defer rows.Close()
 	var countries []Country
@@ -157,17 +161,18 @@ func (c *CountryRepository) List(ctx context.Context) (*[]Country, error) {
 			&country.Name,
 			&country.Description,
 		); err != nil {
-			return nil, fmt.Errorf(err.Error())
+			return nil, fmt.Errorf("%s: %w", op, err)
 		}
 		countries = append(countries, country)
 	}
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf(err.Error())
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	return &countries, nil
 }
 
 func (c *CountryRepository) GetAllTrip(ctx context.Context) (TripType, error) {
+	const op = "CountryRepository.GetAllTrip"
 	builder := psql.
 		Select(
 			tripTypeColumnCallback,
@@ -175,25 +180,25 @@ func (c *CountryRepository) GetAllTrip(ctx context.Context) (TripType, error) {
 		From(tripTypesTableName)
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return TripType{}, fmt.Errorf("failed to build query: %w", err)
+		return TripType{}, fmt.Errorf("%s: %w", op, err)
 	}
 	var tripType TripType
 	tt := make(map[string]string)
 	rows, err := c.db.Query(ctx, query, args...)
 	if err != nil {
-		return TripType{}, fmt.Errorf("failed to query country: %w", err)
+		return TripType{}, fmt.Errorf("%s: %w", op, err)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var name string
 		var callback string
 		if err := rows.Scan(&name, &callback); err != nil {
-			return TripType{}, fmt.Errorf("failed to scan trip type: %w", err)
+			return TripType{}, fmt.Errorf("%s: %w", op, err)
 		}
 		tt[callback] = name
 	}
 	if err := rows.Err(); err != nil {
-		return TripType{}, fmt.Errorf("failed to scan trip type: %w", err)
+		return TripType{}, fmt.Errorf("%s: %w", op, err)
 	}
 	tripType.Data = tt
 
@@ -201,6 +206,7 @@ func (c *CountryRepository) GetAllTrip(ctx context.Context) (TripType, error) {
 }
 
 func (c *CountryRepository) GetContentByCallback(ctx context.Context, code, callback string) (string, error) {
+	const op = "CountryRepository.GetContentByCallback"
 	builder := psql.
 		Select(
 			"ctc.content").
@@ -210,14 +216,20 @@ func (c *CountryRepository) GetContentByCallback(ctx context.Context, code, call
 		Where(sq.Eq{"tt.callback": callback, "c.code": code})
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return "", fmt.Errorf("failed to build query: %w", err)
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 	var content string
 	err = c.db.QueryRow(ctx, query, args...).Scan(&content)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", errCountryNotFound // добавить контент не найден
+			return "", fmt.Errorf("%s: %w", op, err) // добавить контент не найден
 		}
 	}
 	return content, nil
+}
+
+func (c *CountryRepository) GetContentByCodeAndCallback(ctx context.Context, code, callback string) (string, error) {
+	const op = "CountryRepository.GetContentByCodeAndCallback"
+	builder := psql.
+		Select("")
 }

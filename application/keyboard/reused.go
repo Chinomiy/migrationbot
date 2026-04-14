@@ -1,6 +1,7 @@
 package keyboard
 
 import (
+	"fmt"
 	"migtationbot/application/app"
 
 	"github.com/go-telegram/bot/models"
@@ -11,7 +12,7 @@ func BackKeyboard() *models.InlineKeyboardMarkup {
 		InlineKeyboard: [][]models.InlineKeyboardButton{
 			{
 				{
-					Text:         "⬅️ Назад",
+					Text:         app.BackButton,
 					CallbackData: app.CallbackBack,
 				},
 			},
@@ -21,8 +22,17 @@ func BackKeyboard() *models.InlineKeyboardMarkup {
 func BackButton() []models.InlineKeyboardButton {
 	return []models.InlineKeyboardButton{
 		{
-			Text:         "⬅️ Назад",
+			Text:         app.BackButton,
 			CallbackData: app.CallbackBack,
+		},
+	}
+}
+
+func DeleteBookmarkButton(code, trip string) []models.InlineKeyboardButton {
+	return []models.InlineKeyboardButton{
+		{
+			Text:         app.DeleteBookmarkButton,
+			CallbackData: fmt.Sprintf("%s:%s:%s", app.CallbackRemoveBookmark, trip, code),
 		},
 	}
 }
