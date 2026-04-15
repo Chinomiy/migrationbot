@@ -1,8 +1,15 @@
-	package user
+package user
 
-	type User struct {
-		TelegramID int64
-		Role       UserRole
-	}
+type User struct {
+	TelegramID       int64
+	TelegramUsername string
+	Role             UserRole
+}
 
-	type UserRole string
+type UserRole string
+
+var (
+	RoleAdmin   UserRole = "admin"
+	RoleUser    UserRole = "user"
+	RoleManager UserRole = "manager"
+)

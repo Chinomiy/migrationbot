@@ -28,7 +28,13 @@ func (a *Application) TextRouter(
 		return
 	}
 	userID := getUserID(u)
+	tgUsername := u.Message.From.Username
+	_, err := a.UserSVC.GetOrCreateUser(ctx, userID, tgUsername)
+	if err != nil {
+		logger.Error(err)
+	}
 	currentState, _ := a.F.Current(userID)
+
 	switch currentState.ID {
 	case app.StateMainMenu:
 		kb := keyboard.MainMenuKeyboard()
@@ -59,10 +65,13 @@ func (a *Application) CallbackRouter(
 	userID := getUserID(u)
 	msgID := u.CallbackQuery.Message.Message.ID
 	data := u.CallbackQuery.Data
+
 	defer b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: u.CallbackQuery.ID,
 	})
+
 	logger.Infof("RAW CALLBACK DATA: %s", data)
+
 	switch getRawCallbackData(data) {
 	case app.CallbackCountryMenu:
 		if err := a.F.Transition(
@@ -193,12 +202,16 @@ func (a *Application) CallbackRouter(
 		}
 		current, _ := a.F.Current(userID)
 		logger.Infof("BACK STATE: %s", current)
-		a.renderState(
+		err := a.renderState(
 			ctx,
 			userID,
 			msgID,
 			current.ID,
 		)
+		if err != nil {
+			logger.Error(err)
+			return
+		}
 
 	default:
 		return

@@ -2,63 +2,64 @@ package user
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"migtationbot/application/app"
+	"migtationbot/logger"
+
+	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 )
 
 type UserServiceImpl struct {
-	UserRepo UserRepository
+	UserRepo  UserRepository
+	trManager *manager.Manager
 }
 
-func NewUserService(userRepository UserRepository) UserService {
+func NewUserService(userRepository UserRepository, trManager *manager.Manager) UserService {
 	return &UserServiceImpl{
-		UserRepo: userRepository,
+		UserRepo:  userRepository,
+		trManager: trManager,
 	}
 }
 
-func (u *UserServiceImpl) CreateUser(ctx context.Context, id int64) (*User, error) {
-	if id == 0 {
-		return nil, fmt.Errorf("invalid user id")
-	}
+func (u *UserServiceImpl) GetOrCreateUser(ctx context.Context, id int64, tgUsername string) (*User, error) {
 	user := &User{
-		TelegramID: id,
-		Role:       "user",
+		TelegramID:       id,
+		Role:             RoleUser,
+		TelegramUsername: tgUsername,
 	}
-	err := u.UserRepo.CreateUser(ctx, user)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
-}
-
-func (u *UserServiceImpl) GetUser(ctx context.Context, id int64) (*User, error) {
-	if id == 0 {
-		return nil, fmt.Errorf("invalid user id")
-	}
-	user, err := u.UserRepo.GetUser(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
+	err := u.trManager.Do(ctx, func(context.Context) error {
+		err := u.UserRepo.Create(ctx, user)
+		if err == nil {
+			return nil
+		}
+		if errors.Is(err, app.ErrUserAlreadyExists) {
+			return nil
+		}
+		user, err = u.UserRepo.Get(ctx, id)
+		logger.Info(user.TelegramUsername)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return user, err
 }
 
 func (u *UserServiceImpl) UpdateUserRole(ctx context.Context, id int64, role string) error {
 	if role == "" {
-		return fmt.Errorf("invalid user role")
+		return app.ErrEmptyGivenRole
 	}
-	err := u.UserRepo.UpdateUserRole(ctx, id, role)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
-func (u *UserServiceImpl) ExistsUser(ctx context.Context, id int64) (bool, error) {
-	if id == 0 {
-		return false, fmt.Errorf("invalid user id")
-	}
-	user, err := u.GetUser(ctx, id)
-	if err != nil {
-		return false, err
-	}
-	return user != nil, nil
+	err := u.trManager.Do(ctx, func(context.Context) error {
+		user, err := u.UserRepo.Get(ctx, id)
+		if err != nil {
+			return err
+		}
+		err = u.UserRepo.UpdateRole(ctx, user.TelegramUsername, role)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
 }

@@ -15,5 +15,5 @@ const (
 )
 
 const (
-	AccountMenuBookmarks = "🌍 Мои закладки"
+	AccountBookmarksText = "Добавленные закладки: "
 )

@@ -75,7 +75,7 @@ func (r *BookmarkRepositoryImpl) AddFavorite(ctx context.Context, userID int64, 
 		Insert(UserFavoriteTableName).
 		Columns(UserIDColumnName, CountryTripContentColumnName).
 		Select(
-			psql. //  не понимаю как сюда вставить сквирелом ПОПРАВИТЬ
+			psql.
 				Select().
 				Column(sq.Expr("?", userID)).
 				Column("ctc.id").

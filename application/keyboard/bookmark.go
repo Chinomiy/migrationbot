@@ -23,7 +23,7 @@ func UserBookmarks(c []bookmark.UserFavorite) *models.InlineKeyboardMarkup {
 
 	for _, user := range c {
 		btn := models.InlineKeyboardButton{
-			Text:         "📌 " + user.CountryName,
+			Text:         "📌 " + user.CountryName + " " + user.TripType,
 			CallbackData: fmt.Sprintf("%s:%s:%s", app.CallbackBookmarkDetails, user.TripCallback, user.CountryCode),
 		}
 		row = append(row, btn)

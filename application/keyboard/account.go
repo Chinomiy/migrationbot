@@ -11,7 +11,7 @@ func AccountMainMenu() *models.InlineKeyboardMarkup {
 		InlineKeyboard: [][]models.InlineKeyboardButton{
 			{
 				{
-					Text:         app.AccountMenuBookmarks,
+					Text:         app.BookmarksButton,
 					CallbackData: app.CallbackFavorite,
 				},
 			},

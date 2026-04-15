@@ -5,8 +5,6 @@ import (
 	"migtationbot/application/app"
 	"migtationbot/application/keyboard"
 	"migtationbot/logger"
-
-	"github.com/go-telegram/bot"
 )
 
 func (a *Application) HandlerFavorite(ctx context.Context, args ...any) error {
@@ -20,12 +18,8 @@ func (a *Application) HandlerFavorite(ctx context.Context, args ...any) error {
 		return err
 	}
 	kb := keyboard.UserBookmarks(userFavorite)
-	_, err = a.B.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:      userID,
-		MessageID:   msgID,
-		Text:        "закладки:",
-		ReplyMarkup: kb,
-	})
+
+	err = a.editMassage(ctx, userID, msgID, app.AccountBookmarksText, kb)
 	if err != nil {
 		return err
 	}
@@ -57,12 +51,9 @@ func (a *Application) HandlerBookmarkDetails(ctx context.Context, args ...any) e
 		return err
 	}
 	kb := keyboard.BookmarkDetails(code, trip)
-	_, err = a.B.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:      userID,
-		MessageID:   msgID,
-		Text:        content,
-		ReplyMarkup: kb,
-	})
+
+	err = a.editMassage(ctx, userID, msgID, content, kb)
+
 	if err != nil {
 		return err
 	}

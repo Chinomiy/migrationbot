@@ -4,16 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"migtationbot/application/app"
 
 	sq "github.com/Masterminds/squirrel"
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
 	psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
-	errCountryNotFound = errors.New("country not found")
 )
 
 // country
@@ -43,21 +43,16 @@ const (
 	countryTripContentTableName = "country_trip_content"
 )
 
-type CountryRepository struct {
-	db *pgxpool.Pool
-	//ctxGetter *trmpgx.CtxGetter
+type CountryRepositoryImpl struct {
+	db        *pgxpool.Pool
+	ctxGetter *trmpgx.CtxGetter
 }
 
-func NewCountryRepository(db *pgxpool.Pool) *CountryRepository {
-	return &CountryRepository{db: db}
+func NewCountryRepository(db *pgxpool.Pool) CountryRepository {
+	return &CountryRepositoryImpl{db: db, ctxGetter: trmpgx.DefaultCtxGetter}
 }
-func (c *CountryRepository) GetByCode(ctx context.Context, code string) (*Country, error) {
-	return c.getByCode(ctx, code, false)
-}
-func (c *CountryRepository) GetByCodeUpdate(ctx context.Context, code string) (*Country, error) {
-	return c.getByCode(ctx, code, true)
-}
-func (c *CountryRepository) getByCode(ctx context.Context, code string, forUpdate bool) (*Country, error) {
+
+func (c *CountryRepositoryImpl) GetByCode(ctx context.Context, code string) (*Country, error) {
 	const op = "CountryRepository.getByCode"
 	builder := psql.
 		Select(
@@ -69,17 +64,12 @@ func (c *CountryRepository) getByCode(ctx context.Context, code string, forUpdat
 		From(countryTableName + " AS c").
 		Where(sq.Eq{"c.code": code})
 
-	if forUpdate {
-		builder = builder.Suffix("FOR UPDATE")
-	}
-
 	query, args, err := builder.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	var country Country
-	//r.ctxGetter.DefaultTrOrD
-	err = c.db.QueryRow(ctx, query, args...).Scan(
+	err = c.ctxGetter.DefaultTrOrDB(ctx, c.db).QueryRow(ctx, query, args...).Scan(
 		&country.ID,
 		&country.Code,
 		&country.Description,
@@ -87,13 +77,14 @@ func (c *CountryRepository) getByCode(ctx context.Context, code string, forUpdat
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errCountryNotFound
+			return nil, app.ErrCountryNotFound
 		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	return &country, nil
 }
-func (c *CountryRepository) GetCountryTrip(ctx context.Context, code string) (TripType, error) {
+
+func (c *CountryRepositoryImpl) GetCountryTrip(ctx context.Context, code string) (TripType, error) {
 	const op = "CountryRepository.GetCountryTrip"
 	builder := psql.
 		Select(
@@ -111,7 +102,8 @@ func (c *CountryRepository) GetCountryTrip(ctx context.Context, code string) (Tr
 	}
 	var tripType TripType
 	trip := make(map[string]string)
-	rows, err := c.db.Query(ctx, query, args...)
+	rows, err := c.ctxGetter.DefaultTrOrDB(ctx, c.db).Query(ctx, query, args...)
+
 	if err != nil {
 		return TripType{}, fmt.Errorf("%s: %w", op, err)
 	}
@@ -131,7 +123,7 @@ func (c *CountryRepository) GetCountryTrip(ctx context.Context, code string) (Tr
 	tripType.Data = trip
 	return tripType, nil
 }
-func (c *CountryRepository) List(ctx context.Context) (*[]Country, error) {
+func (c *CountryRepositoryImpl) List(ctx context.Context) (*[]Country, error) {
 	const op = "CountryRepository.List"
 	builder := psql.
 		Select(
@@ -152,7 +144,9 @@ func (c *CountryRepository) List(ctx context.Context) (*[]Country, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	defer rows.Close()
+
 	var countries []Country
+
 	for rows.Next() {
 		var country Country
 		if err = rows.Scan(
@@ -171,7 +165,7 @@ func (c *CountryRepository) List(ctx context.Context) (*[]Country, error) {
 	return &countries, nil
 }
 
-func (c *CountryRepository) GetAllTrip(ctx context.Context) (TripType, error) {
+func (c *CountryRepositoryImpl) GetAllTrip(ctx context.Context) (TripType, error) {
 	const op = "CountryRepository.GetAllTrip"
 	builder := psql.
 		Select(
@@ -205,7 +199,7 @@ func (c *CountryRepository) GetAllTrip(ctx context.Context) (TripType, error) {
 	return tripType, nil
 }
 
-func (c *CountryRepository) GetContentByCallback(ctx context.Context, code, callback string) (string, error) {
+func (c *CountryRepositoryImpl) GetContentByCallback(ctx context.Context, code, callback string) (string, error) {
 	const op = "CountryRepository.GetContentByCallback"
 	builder := psql.
 		Select(
@@ -226,10 +220,4 @@ func (c *CountryRepository) GetContentByCallback(ctx context.Context, code, call
 		}
 	}
 	return content, nil
-}
-
-func (c *CountryRepository) GetContentByCodeAndCallback(ctx context.Context, code, callback string) (string, error) {
-	const op = "CountryRepository.GetContentByCodeAndCallback"
-	builder := psql.
-		Select("")
 }

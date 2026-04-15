@@ -4,8 +4,6 @@ import (
 	"context"
 	"migtationbot/application/app"
 	"migtationbot/application/keyboard"
-
-	"github.com/go-telegram/bot"
 )
 
 func (a *Application) HandlerCountryMenu(ctx context.Context, args ...any) error {
@@ -31,12 +29,7 @@ func (a *Application) HandlerCountryDetails(ctx context.Context, args ...any) er
 		return err
 	}
 	kb := keyboard.CountryKeyboard(code, trip)
-	_, err = a.B.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:      userID,
-		MessageID:   msgID,
-		Text:        content,
-		ReplyMarkup: kb,
-	})
+	err = a.editMassage(ctx, userID, msgID, content, kb)
 	return nil
 }
 
@@ -51,12 +44,8 @@ func (a *Application) HandlerCountryTrip(ctx context.Context, args ...any) error
 		return err
 	}
 	kb := keyboard.CountryTripVariants(country)
-	_, err = a.B.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:      userID,
-		MessageID:   msgID,
-		Text:        app.CountryTripText,
-		ReplyMarkup: kb,
-	})
+	err = a.editMassage(ctx, userID, msgID, app.CountryTripText, kb)
+
 	if err != nil {
 		return err
 	}

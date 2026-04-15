@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"migtationbot/application/app"
 
 	sq "github.com/Masterminds/squirrel"
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -15,72 +18,87 @@ var (
 )
 
 var (
-	userTableName  = "user"
+	userTableName  = "users"
 	userTgIDColumn = "tg_id"
 	userRoleColumn = "role"
+	userTgUsername = "tg_username"
 )
 
 type UserRepositoryImpl struct {
-	db *pgxpool.Pool
+	db        *pgxpool.Pool
+	ctxGetter *trmpgx.CtxGetter
 }
 
 func NewUserRepository(db *pgxpool.Pool) UserRepository {
-	return &UserRepositoryImpl{db: db}
+	return &UserRepositoryImpl{db: db, ctxGetter: trmpgx.DefaultCtxGetter}
 }
 
-func (r *UserRepositoryImpl) CreateUser(ctx context.Context, user *User) error {
-	const op = "UserRepositoryImpl.CreateUser"
+func (r *UserRepositoryImpl) Create(ctx context.Context, user *User) error {
+	const op = "UserRepositoryImpl.Create"
+
 	builder := psql.
 		Insert(userTableName).
-		Columns(userTgIDColumn, userRoleColumn).
-		Values(userTgIDColumn, user.Role)
+		Columns(userTgIDColumn, userRoleColumn, userTgUsername).
+		Values(user.TelegramID, user.Role, user.TelegramUsername)
 
 	query, args, err := builder.ToSql()
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
-	_, err = r.db.Exec(ctx, query, args...)
+	_, err = r.ctxGetter.DefaultTrOrDB(ctx, r.db).Exec(ctx, query, args...)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return app.ErrUserAlreadyExists
+		}
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	return nil
 }
-func (r *UserRepositoryImpl) GetUser(ctx context.Context, id int64) (*User, error) {
-	const op = "UserRepositoryImpl.GetUser"
+func (r *UserRepositoryImpl) Get(ctx context.Context, id int64) (*User, error) {
+	const op = "UserRepositoryImpl.Get"
+
 	builder := psql.
-		Select(userTgIDColumn, userRoleColumn).
+		Select(userTgIDColumn, userRoleColumn, userTgUsername).
 		From(userTableName).
 		Where(sq.Eq{userTgIDColumn: id})
 	query, args, err := builder.ToSql()
+
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	var user User
-	err = r.db.QueryRow(ctx, query, args...).Scan(
-		&user.TelegramID,
-		&user.Role,
-	)
+
+	var user *User
+	err = r.ctxGetter.DefaultTrOrDB(ctx, r.db).QueryRow(ctx, query, args...).
+		Scan(
+			&user.TelegramID,
+			&user.Role,
+			&user.TelegramUsername,
+		)
+
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, pgx.ErrNoRows
 		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	return &user, nil
+
+	return user, nil
 }
 
-func (r *UserRepositoryImpl) UpdateUserRole(ctx context.Context, id int64, newRole string) error {
-	const op = "UserRepositoryImpl.UpdateUserRole"
+func (r *UserRepositoryImpl) UpdateRole(ctx context.Context, tgUsername string, newRole string) error {
+	const op = "UserRepositoryImpl.UpdateRole"
+
 	builder := psql.
 		Update(userTableName).
 		Set(userRoleColumn, newRole).
-		Where(sq.Eq{userTgIDColumn: id})
-
+		Where(sq.Eq{userTgUsername: tgUsername})
 	query, args, err := builder.ToSql()
+
 	if err != nil {
 		return err
 	}
-	_, err = r.db.Exec(ctx, query, args...)
+	_, err = r.ctxGetter.DefaultTrOrDB(ctx, r.db).Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
