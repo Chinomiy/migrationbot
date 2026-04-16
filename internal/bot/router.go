@@ -3,8 +3,8 @@ package bot
 import (
 	"context"
 	"log"
-	"migtationbot/application/app"
-	"migtationbot/application/keyboard"
+	"migtationbot/internal/app"
+	"migtationbot/internal/keyboard"
 	"migtationbot/logger"
 	"strings"
 
@@ -13,10 +13,11 @@ import (
 )
 
 type HandlerArgs struct {
-	UserID int64
-	MsgID  int
-	Code   string
-	Trip   string
+	UserID          int64
+	MsgID           int
+	Code            string
+	Trip            string
+	RawCallbackData string
 }
 
 func (a *Application) TextRouter(
@@ -51,7 +52,6 @@ func (a *Application) TextRouter(
 			ReplyMarkup: kb,
 		})
 	}
-	return
 }
 
 func (a *Application) CallbackRouter(
@@ -66,13 +66,33 @@ func (a *Application) CallbackRouter(
 	msgID := u.CallbackQuery.Message.Message.ID
 	data := u.CallbackQuery.Data
 
-	defer b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+	defer func(b *bot.Bot, ctx context.Context, params *bot.AnswerCallbackQueryParams) {
+		_, err := b.AnswerCallbackQuery(ctx, params)
+		if err != nil {
+			logger.Error(err)
+		}
+	}(b, ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: u.CallbackQuery.ID,
 	})
 
 	logger.Infof("RAW CALLBACK DATA: %s", data)
 
 	switch getRawCallbackData(data) {
+
+	case app.CallbackManagerMenu:
+		if err := a.F.Transition(
+			ctx,
+			userID,
+			app.StateManagerMenu,
+			HandlerArgs{
+				UserID:          userID,
+				MsgID:           msgID,
+				RawCallbackData: data,
+			},
+		); err != nil {
+
+		}
+
 	case app.CallbackCountryMenu:
 		if err := a.F.Transition(
 			ctx,

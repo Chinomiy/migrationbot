@@ -1,10 +1,10 @@
 package bot
 
 import (
-	"migtationbot/application/bookmark"
-	"migtationbot/application/country"
-	"migtationbot/application/user"
 	"migtationbot/fsm"
+	"migtationbot/internal/bookmark"
+	"migtationbot/internal/country"
+	"migtationbot/internal/user"
 
 	"github.com/go-telegram/bot"
 )

@@ -3,8 +3,8 @@ package bookmark
 import (
 	"context"
 	"fmt"
-	"migtationbot/application/country"
-	"migtationbot/application/user"
+	"migtationbot/internal/country"
+	"migtationbot/internal/user"
 )
 
 type BookmarkServiceImpl struct {

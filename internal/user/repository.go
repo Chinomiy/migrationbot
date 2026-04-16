@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"migtationbot/application/app"
+	"migtationbot/internal/app"
 
 	sq "github.com/Masterminds/squirrel"
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"migtationbot/application/app"
+	"migtationbot/internal/app"
 
 	sq "github.com/Masterminds/squirrel"
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
@@ -18,11 +18,12 @@ var (
 
 // country
 const (
-	countryTableName  = "country"
-	countryColumnID   = "id"
-	countryColumnCode = "code"
-	countryColumnName = "name"
-	countryColumnDesc = "description"
+	countryTableName       = "country"
+	countryColumnID        = "id"
+	countryColumnCode      = "code"
+	countryColumnName      = "name"
+	countryColumnDesc      = "description"
+	countryColumnPublished = "published"
 )
 
 // trip_type
@@ -37,10 +38,13 @@ const (
 const (
 	countryTripTypeTableName       = "country_trip_type"
 	countryTripTypeCountryColumnID = "country_id"
-	cuntryTripTypeColumnID         = "trip_type_id"
+	countryTripTypeColumnID        = "trip_type_id"
 )
 const (
-	countryTripContentTableName = "country_trip_content"
+	countryTripContentTableName        = "country_trip_content"
+	countryTripContentColumnContent    = "content"
+	countryTripContentColumnCountryID  = "country_id"
+	countryTripContentColumnTripTypeID = "trip_type_id"
 )
 
 type CountryRepositoryImpl struct {
@@ -52,7 +56,7 @@ func NewCountryRepository(db *pgxpool.Pool) CountryRepository {
 	return &CountryRepositoryImpl{db: db, ctxGetter: trmpgx.DefaultCtxGetter}
 }
 
-func (c *CountryRepositoryImpl) GetByCode(ctx context.Context, code string) (*Country, error) {
+func (c *CountryRepositoryImpl) GetCountryByCode(ctx context.Context, code string) (*Country, error) {
 	const op = "CountryRepository.getByCode"
 	builder := psql.
 		Select(
@@ -199,6 +203,34 @@ func (c *CountryRepositoryImpl) GetAllTrip(ctx context.Context) (TripType, error
 	return tripType, nil
 }
 
+func (c *CountryRepositoryImpl) GetTripByCallback(ctx context.Context, callback string) (TripType, error) {
+	const op = "CountryRepository.GetTripByCallback"
+	builder := psql.
+		Select(tripTypesColumnID, tripTypeColumnName, tripTypeColumnCallback).
+		From(tripTypesTableName).
+		Where(sq.Eq{tripTypeColumnCallback: callback})
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return TripType{}, fmt.Errorf("%s: %w", op, err)
+	}
+	tripType := TripType{
+		Data: make(map[string]string),
+	}
+	var name string
+	var cb string
+	var id int
+	err = c.ctxGetter.DefaultTrOrDB(ctx, c.db).QueryRow(ctx, query, args...).Scan(&id, &name, &cb)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return TripType{}, app.ErrTripWithGivenCallbackNotFound
+		}
+		return TripType{}, fmt.Errorf("%s: %w", op, err)
+	}
+	tripType.Id = id
+	tripType.Data[cb] = name
+	return tripType, nil
+}
+
 func (c *CountryRepositoryImpl) GetContentByCallback(ctx context.Context, code, callback string) (string, error) {
 	const op = "CountryRepository.GetContentByCallback"
 	builder := psql.
@@ -216,8 +248,96 @@ func (c *CountryRepositoryImpl) GetContentByCallback(ctx context.Context, code, 
 	err = c.db.QueryRow(ctx, query, args...).Scan(&content)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", fmt.Errorf("%s: %w", op, err) // добавить контент не найден
+			return "", app.ErrContentNotFound
 		}
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 	return content, nil
+}
+
+func (c *CountryRepositoryImpl) CreateCountry(ctx context.Context, country *Country) error {
+	const op = "CountryRepository.CreateCountry"
+
+	builder := psql.
+		Insert(countryTableName).
+		Columns(countryColumnName, countryColumnCode, countryColumnDesc).
+		Values(country.Name, country.Code, country.Description)
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	_, err = c.ctxGetter.DefaultTrOrDB(ctx, c.db).Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
+}
+
+func (c *CountryRepositoryImpl) CreateTrip(ctx context.Context, name, callback string) error {
+	const op = "CountryRepository.CreateTrip"
+
+	builder := psql.
+		Insert(tripTypesTableName).
+		Columns(tripTypeColumnName, tripTypeColumnCallback).
+		Values(name, callback)
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	_, err = c.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
+}
+
+func (c *CountryRepositoryImpl) SetCountryTripType(ctx context.Context, countryId, tripTypeId int) error {
+	const op = "CountryRepository.SetTripToCountry"
+	builder := psql.
+		Insert(countryTripTypeTableName).
+		Columns(countryTripTypeCountryColumnID, countryTripTypeColumnID).
+		Values(tripTypeId, countryId)
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	_, err = c.ctxGetter.DefaultTrOrDB(ctx, c.db).Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
+}
+
+func (c *CountryRepositoryImpl) SetCountryTripContent(ctx context.Context, countryId, tripId int, content string) error {
+	const op = "CountryRepository.SetCountryContent"
+
+	builder := psql.
+		Insert(countryTripContentTableName).
+		Columns(countryTripContentColumnContent, countryTripContentColumnCountryID, countryTripContentColumnTripTypeID).
+		Values(content, countryId, tripId)
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	_, err = c.ctxGetter.DefaultTrOrDB(ctx, c.db).Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
+}
+func (c *CountryRepositoryImpl) PublishCountry(ctx context.Context, countryID int) error {
+	const op = "CountryRepository.PublishCountry"
+	builder := psql.
+		Update(countryTableName).
+		Set(countryColumnPublished, true).
+		Where(sq.Eq{"id": countryID})
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	_, err = c.ctxGetter.DefaultTrOrDB(ctx, c.db).Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
 }

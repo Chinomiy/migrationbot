@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 	"errors"
-	"migtationbot/application/app"
+	"migtationbot/internal/app"
 	"migtationbot/logger"
 
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"

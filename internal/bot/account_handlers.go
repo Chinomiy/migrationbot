@@ -2,8 +2,8 @@ package bot
 
 import (
 	"context"
-	"migtationbot/application/app"
-	"migtationbot/application/keyboard"
+	"migtationbot/internal/app"
+	"migtationbot/internal/keyboard"
 )
 
 func (a *Application) HandlerAccount(ctx context.Context, args ...any) error {

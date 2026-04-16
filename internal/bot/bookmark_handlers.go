@@ -2,8 +2,8 @@ package bot
 
 import (
 	"context"
-	"migtationbot/application/app"
-	"migtationbot/application/keyboard"
+	"migtationbot/internal/app"
+	"migtationbot/internal/keyboard"
 	"migtationbot/logger"
 )
 
@@ -72,6 +72,10 @@ func (a *Application) HandlerRemoveBookmark(ctx context.Context, args ...any) er
 	if err != nil {
 		return err
 	}
-	a.renderState(ctx, userID, msgID, app.StateAccount)
+	err = a.renderState(ctx, userID, msgID, app.StateAccount)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
 	return nil
 }

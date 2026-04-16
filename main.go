@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
-	"migtationbot/application/app"
-	"migtationbot/application/bookmark"
-	b "migtationbot/application/bot"
-	"migtationbot/application/country"
-	"migtationbot/application/user"
-	"migtationbot/config"
 	"migtationbot/fsm"
+	"migtationbot/internal/app"
+	"migtationbot/internal/bookmark"
+	b "migtationbot/internal/bot"
+	"migtationbot/internal/config"
+	"migtationbot/internal/country"
+	"migtationbot/internal/user"
 	"migtationbot/logger"
 	"os"
 	"os/signal"
@@ -74,6 +74,7 @@ func main() {
 			app.StateAccount:            appf.HandlerAccount,
 			app.StateFavorite:           appf.HandlerFavorite,
 			app.StateBookmarkDetails:    appf.HandlerBookmarkDetails,
+			app.StateManagerMenu:        appf.HandlerManagerMenu,
 		})
 
 	appf.B, err = bot.New(cfg.TgToken, opts...)

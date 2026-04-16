@@ -2,8 +2,8 @@ package keyboard
 
 import (
 	"fmt"
-	"migtationbot/application/app"
-	"migtationbot/application/bookmark"
+	"migtationbot/internal/app"
+	"migtationbot/internal/bookmark"
 
 	"github.com/go-telegram/bot/models"
 )

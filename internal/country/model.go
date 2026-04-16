@@ -1,15 +1,17 @@
 package country
 
 type Country struct {
-	ID          string
+	ID          int
 	Code        string
 	Name        string
 	Description string
-	// callback = name
+
 	TripTypes TripType
 	Content   string
 }
 
 type TripType struct {
+	Id int
+	// [callback]name
 	Data map[string]string
 }

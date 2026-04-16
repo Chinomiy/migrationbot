@@ -2,9 +2,9 @@ package bot
 
 import (
 	"context"
-	"migtationbot/application/app"
-	"migtationbot/application/keyboard"
 	"migtationbot/fsm"
+	"migtationbot/internal/app"
+	"migtationbot/internal/keyboard"
 	"migtationbot/logger"
 )
 

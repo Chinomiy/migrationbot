@@ -2,8 +2,9 @@ package bot
 
 import (
 	"context"
-	"migtationbot/application/app"
-	"migtationbot/application/keyboard"
+	"migtationbot/internal/app"
+	"migtationbot/internal/keyboard"
+	"migtationbot/logger"
 )
 
 func (a *Application) HandlerCountryMenu(ctx context.Context, args ...any) error {
@@ -30,6 +31,10 @@ func (a *Application) HandlerCountryDetails(ctx context.Context, args ...any) er
 	}
 	kb := keyboard.CountryKeyboard(code, trip)
 	err = a.editMassage(ctx, userID, msgID, content, kb)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
 	return nil
 }
 
