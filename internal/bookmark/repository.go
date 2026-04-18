@@ -86,8 +86,7 @@ func (r *BookmarkRepositoryImpl) AddFavorite(ctx context.Context, userID int64, 
 					"c.code":     code,
 					"t.callback": trip,
 				}),
-		).Suffix("ON CONFLICT (user_id, country_trip_content_id) DO NOTHING")
-
+		)
 	query, args, err := builder.ToSql()
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)

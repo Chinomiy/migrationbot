@@ -42,6 +42,7 @@ func (s *BookmarkServiceImpl) AddFavorite(ctx context.Context, userID int64, cod
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

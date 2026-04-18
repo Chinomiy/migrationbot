@@ -5,12 +5,14 @@ import "migtationbot/fsm"
 const (
 	// StateMainMenu стейты юзера главная менюшка закладки
 	StateMainMenu           fsm.StateID = "main_menu"
-	StateCountryMenu        fsm.StateID = "country_menu"
-	StateCountryDetailsMenu fsm.StateID = "country_details_menu"
-	StateCountry            fsm.StateID = "country"
+	StateCountryMenu        fsm.StateID = "country_menu"         // Меню со списком СТРАН
+	StateCountryDetailsMenu fsm.StateID = "country_details_menu" // Меню страны + выбран тип поездки
+	StateCountry            fsm.StateID = "country"              // меню страны с выбором типа поездки
 	StateAccount            fsm.StateID = "account"
 	StateFavorite           fsm.StateID = "favorite"
 	StateBookmarkDetails    fsm.StateID = "bookmark_details"
+
+	StateNoChange fsm.StateID = "no_change"
 
 	// StateManagerMenu менеджерские стетйы
 	StateManagerMenu          fsm.StateID = "manager_menu"

@@ -2,69 +2,95 @@ package bot
 
 import (
 	"context"
-	"log"
+	"migtationbot/fsm"
 	"migtationbot/internal/app"
 	"migtationbot/internal/keyboard"
 	"migtationbot/logger"
-	"strings"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
 
-type HandlerArgs struct {
-	UserID          int64
-	MsgID           int
-	Code            string
-	Trip            string
-	RawCallbackData string
+type Args struct {
+	rawText   string
+	rawCBData string
+	userID    int64
+	userName  string
+	msgID     int
 }
 
-func (a *Application) TextRouter(
-	ctx context.Context,
-	b *bot.Bot,
-	u *models.Update,
-) {
+type Router struct {
+	f *fsm.FSM
+
+	handlers map[fsm.StateID]HandleFunc
+
+	actionHandlers map[string]HandleFunc
+}
+
+func NewRouter(f *fsm.FSM) *Router {
+	return &Router{
+		f:              f,
+		handlers:       make(map[fsm.StateID]HandleFunc),
+		actionHandlers: make(map[string]HandleFunc),
+	}
+}
+func (r *Router) RegisterHandler(h *Handler) {
+	// меняющие состояние хенждеры
+	r.handlers[app.StateMainMenu] = h.MainMenu
+	r.handlers[app.StateCountryMenu] = h.CountryMenu
+	r.handlers[app.StateCountryDetailsMenu] = h.CountryDetails
+	r.handlers[app.StateCountry] = h.CountryTrip
+	r.handlers[app.StateAccount] = h.Account
+	r.handlers[app.StateFavorite] = h.Favorite
+	r.handlers[app.StateBookmarkDetails] = h.BookmarkDetails
+	r.handlers[app.StateManagerMenu] = h.ManagerMenu
+
+	//хендлеры которые не меняет состояние
+	r.actionHandlers[app.CallbackAddFavorite] = h.AddFavorite
+	r.actionHandlers[app.CallbackRemoveBookmark] = h.RemoveBookmark
+}
+
+func (r *Router) TextRoute(ctx context.Context, b *bot.Bot, u *models.Update) {
 	if u.Message == nil {
 		return
 	}
-	userID := getUserID(u)
-	tgUsername := u.Message.From.Username
-	_, err := a.UserSVC.GetOrCreateUser(ctx, userID, tgUsername)
+	args := Args{
+		rawText:  u.Message.Text,
+		userID:   u.Message.From.ID,
+		msgID:    u.Message.ID,
+		userName: u.Message.From.Username,
+	}
+	current, err := r.f.Current(args.userID)
 	if err != nil {
 		logger.Error(err)
+		return
 	}
-	currentState, _ := a.F.Current(userID)
-
-	switch currentState.ID {
+	switch current.ID {
 	case app.StateMainMenu:
 		kb := keyboard.MainMenuKeyboard()
-		_, _ = a.B.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:      userID,
+		_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:      args.userID,
 			Text:        app.MainText,
 			ReplyMarkup: kb,
 		})
 	default:
 		kb := keyboard.MainMenuKeyboard()
-		_, _ = a.B.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:      userID,
+		_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:      args.userID,
 			Text:        app.MainText,
 			ReplyMarkup: kb,
 		})
 	}
+
 }
 
-func (a *Application) CallbackRouter(
-	ctx context.Context,
-	b *bot.Bot,
-	u *models.Update,
-) {
+func (r *Router) CallbackRoute(ctx context.Context, b *bot.Bot, u *models.Update) {
 	if u.CallbackQuery == nil {
 		return
 	}
-	userID := getUserID(u)
-	msgID := u.CallbackQuery.Message.Message.ID
-	data := u.CallbackQuery.Data
+
+	logger.Infof("RAW CALLBACK QUERY: %s", u.CallbackQuery.Data)
+	args := setupArgsFromCallback(u)
 
 	defer func(b *bot.Bot, ctx context.Context, params *bot.AnswerCallbackQueryParams) {
 		_, err := b.AnswerCallbackQuery(ctx, params)
@@ -75,187 +101,54 @@ func (a *Application) CallbackRouter(
 		CallbackQueryID: u.CallbackQuery.ID,
 	})
 
-	logger.Infof("RAW CALLBACK DATA: %s", data)
-
-	switch getRawCallbackData(data) {
-
-	case app.CallbackManagerMenu:
-		if err := a.F.Transition(
-			ctx,
-			userID,
-			app.StateManagerMenu,
-			HandlerArgs{
-				UserID:          userID,
-				MsgID:           msgID,
-				RawCallbackData: data,
-			},
-		); err != nil {
-
-		}
-
-	case app.CallbackCountryMenu:
-		if err := a.F.Transition(
-			ctx,
-			userID,
-			app.StateCountryMenu,
-			HandlerArgs{
-				UserID: userID,
-				MsgID:  msgID,
-			},
-		); err != nil {
-			logger.Error(err)
-			return
-		}
-	case app.CallbackCountry:
-		if err := a.F.Transition(
-			ctx,
-			userID,
-			app.StateCountry,
-			HandlerArgs{
-				UserID: userID,
-				MsgID:  msgID,
-				Code:   getCodeFromCallbackData(data),
-			},
-		); err != nil {
-			log.Println(err)
-			return
-		}
-		return
-	case app.CallbackCountryDetailsMenu:
-		if err := a.F.Transition(
-			ctx,
-			userID,
-			app.StateCountryDetailsMenu,
-			HandlerArgs{
-				UserID: userID,
-				MsgID:  msgID,
-				Code:   getCodeFromCallbackData(data),
-				Trip:   getTripFromCallbackData(data),
-			},
-		); err != nil {
-			logger.Error(err)
-		}
-		return
-	case app.CallbackAccount:
-		if err := a.F.Transition(
-			ctx,
-			userID,
-			app.StateAccount,
-			HandlerArgs{
-				UserID: userID,
-				MsgID:  msgID,
-			}); err != nil {
-			logger.Error(err)
-			return
-		}
-		return
-	case app.CallbackAddFavorite:
-		state, err := a.F.Current(userID)
+	if callbackData(args.rawCBData) == app.CallbackBack {
+		err := r.f.Back(args.userID)
 		if err != nil {
 			logger.Error(err)
 			return
 		}
-		data := state.Data
+		r.reRender(ctx, args.userID, u)
+		return
+	}
 
-		if err = a.HandlerAddFavorite(ctx, HandlerArgs{
-			UserID: userID,
-			MsgID:  msgID,
-			Code:   data[0].(HandlerArgs).Code,
-			Trip:   data[0].(HandlerArgs).Trip,
-		}); err != nil {
+	if cb, ok := r.actionHandlers[callbackData(u.CallbackQuery.Data)]; ok {
+		err := cb(ctx, args)
+		if err != nil {
 			logger.Error(err)
-			return
 		}
-		// уведомление что добавлено
-		return
-	case app.CallbackFavorite:
-		if err := a.F.Transition(
-			ctx,
-			userID,
-			app.StateFavorite,
-			HandlerArgs{
-				UserID: userID,
-				MsgID:  msgID,
-			}); err != nil {
-			logger.Error(err)
+		if callbackData(u.CallbackQuery.Data) == app.CallbackRemoveBookmark {
+			err := r.f.Back(args.userID)
+			if err != nil {
+				logger.Error(err)
+				return
+			}
+			r.reRender(ctx, args.userID, u)
 			return
 		}
 		return
+	}
 
-	case app.CallbackBookmarkDetails:
-		if err := a.F.Transition(
-			ctx,
-			userID,
-			app.StateBookmarkDetails,
-			HandlerArgs{
-				UserID: userID,
-				MsgID:  msgID,
-				Trip:   getTripFromCallbackData(data),
-				Code:   getCodeFromCallbackData(data),
-			}); err != nil {
-			logger.Error(err)
-			return
-		}
+	newState := getStateByCallback(callbackData(args.rawCBData))
+	logger.Infof("NEW STATE: %v", newState)
+	if err := r.f.Transition(args.userID, newState, args); err != nil {
+		logger.Error(err)
 		return
-
-	case app.CallbackRemoveBookmark:
-		if err := a.HandlerRemoveBookmark(
-			ctx,
-			HandlerArgs{
-				UserID: userID,
-				MsgID:  msgID,
-				Trip:   getTripFromCallbackData(data),
-				Code:   getCodeFromCallbackData(data),
-			},
-		); err != nil {
-			logger.Error(err)
-			return
-		}
-		return
-	case app.CallbackBack:
-		if err := a.F.Back(
-			ctx,
-			userID,
-		); err != nil {
-			logger.Error(err)
-			return
-		}
-		current, _ := a.F.Current(userID)
-		logger.Infof("BACK STATE: %s", current)
-		err := a.renderState(
-			ctx,
-			userID,
-			msgID,
-			current.ID,
-		)
+	}
+	if cb, ok := r.handlers[newState]; ok {
+		err := cb(ctx, args)
 		if err != nil {
 			logger.Error(err)
 			return
 		}
-
-	default:
-		return
 	}
 }
 
-func getRawCallbackData(data string) string {
-	return strings.Split(data, ":")[0]
-}
-
-func getCodeFromCallbackData(data string) string {
-	rawData := strings.Split(data, ":")
-	if len(rawData) == 2 {
-		return rawData[1]
+func (r *Router) reRender(ctx context.Context, userID int64, u *models.Update) {
+	current, _ := r.f.Current(userID)
+	if handler, ok := r.handlers[current.ID]; ok {
+		if err := handler(ctx, setupArgsFromCache(u, current.Data)); err != nil {
+			logger.Error(err)
+			return
+		}
 	}
-	if len(rawData) == 3 {
-		return rawData[2]
-	}
-	return ""
-}
-func getTripFromCallbackData(data string) string {
-	rawData := strings.Split(data, ":")
-	if len(rawData) == 3 {
-		return rawData[1]
-	}
-	return ""
 }
