@@ -25,7 +25,8 @@ func (u *userStateStorage) Push(userID int64, state State) error {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	u.Storage[userID] = append(u.Storage[userID], state)
-	logger.Infof("user storage: %+v", u.Storage)
+
+	logger.Infof("USER STORAGE %v", u.Storage[userID])
 	return nil
 }
 
@@ -49,7 +50,8 @@ func (u *userStateStorage) Back(userID int64) (State, error) {
 		return stack[0], nil
 	}
 	u.Storage[userID] = stack[:len(stack)-1]
-	logger.Infof("userID: %d storage: %+v", userID, u.Storage)
+	fmt.Println("-------------After BACK----------------")
+	fmt.Println(u.Storage[userID])
 	return u.Storage[userID][len(u.Storage[userID])-1], nil
 }
 func (u *userStateStorage) Exists(userID int64) (bool, error) {

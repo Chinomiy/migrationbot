@@ -12,7 +12,7 @@ func AddBookmarkButton(code, trip string) []models.InlineKeyboardButton {
 	return []models.InlineKeyboardButton{
 		{
 			Text:         "⬅️ Добавить в закладки",
-			CallbackData: fmt.Sprintf("%s:%s:%s", app.CallbackAddFavorite, code, trip),
+			CallbackData: fmt.Sprintf("%s:%s:%s", app.CallbackAddFavorite, trip, code),
 		},
 	}
 }
