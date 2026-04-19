@@ -25,7 +25,6 @@ func main() {
 	cfg, err := config.MustLoad()
 	if err != nil {
 		logger.Error(err)
-		os.Exit(1)
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
