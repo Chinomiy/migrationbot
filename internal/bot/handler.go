@@ -45,17 +45,17 @@ type HandleFunc func(ctx context.Context, args Args) error
 type Handler struct {
 	B *bot.Bot
 
-	userSVC user.UserService
+	userSVC user.Service
 
-	bookmarkSVC bookmark.BookmarkService
+	bookmarkSVC bookmark.Service
 
-	countrySVC country.CountryService
+	countrySVC country.Service
 }
 
 func NewHandler(
-	userSVC user.UserService,
-	bookmarkSVC bookmark.BookmarkService,
-	countrySVC country.CountryService,
+	userSVC user.Service,
+	bookmarkSVC bookmark.Service,
+	countrySVC country.Service,
 ) *Handler {
 	return &Handler{
 		userSVC: userSVC,

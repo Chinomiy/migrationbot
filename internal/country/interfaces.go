@@ -2,7 +2,10 @@ package country
 
 import "context"
 
-type CountryRepository interface {
+//TODO по хорошему надо вынести все действия с TRIP в отдельные service/repository
+// country уже стал слишком огромным и сложно становится это читать
+
+type Repository interface {
 	GetCountryByCode(ctx context.Context, code string) (*Country, error)
 	GetCountryTrip(ctx context.Context, code string) (TripType, error)
 	List(ctx context.Context) (*[]Country, error)
@@ -16,8 +19,7 @@ type CountryRepository interface {
 	PublishCountry(ctx context.Context, countryID int) error
 }
 
-type CountryService interface {
-	FindByCode(ctx context.Context, code string) (*Country, error)
+type Service interface {
 	List(ctx context.Context) (*[]Country, error)
 	GetCountryWithTrip(ctx context.Context, code string) (*Country, error)
 	GetAllTrips(ctx context.Context) (TripType, error)

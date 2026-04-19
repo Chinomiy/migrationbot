@@ -9,19 +9,19 @@ import (
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 )
 
-type UserServiceImpl struct {
-	UserRepo  UserRepository
+type ServiceImpl struct {
+	UserRepo  Repository
 	trManager *manager.Manager
 }
 
-func NewUserService(userRepository UserRepository, trManager *manager.Manager) UserService {
-	return &UserServiceImpl{
+func NewUserService(userRepository Repository, trManager *manager.Manager) Service {
+	return &ServiceImpl{
 		UserRepo:  userRepository,
 		trManager: trManager,
 	}
 }
 
-func (u *UserServiceImpl) GetOrCreateUser(ctx context.Context, id int64, tgUsername string) (*User, error) {
+func (u *ServiceImpl) GetOrCreateUser(ctx context.Context, id int64, tgUsername string) (*User, error) {
 	user := &User{
 		TelegramID:       id,
 		Role:             RoleUser,
@@ -45,7 +45,7 @@ func (u *UserServiceImpl) GetOrCreateUser(ctx context.Context, id int64, tgUsern
 	return user, err
 }
 
-func (u *UserServiceImpl) UpdateUserRole(ctx context.Context, id int64, role string) error {
+func (u *ServiceImpl) UpdateUserRole(ctx context.Context, id int64, role string) error {
 	if role == "" {
 		return app.ErrEmptyGivenRole
 	}

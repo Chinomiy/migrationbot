@@ -4,33 +4,20 @@ import (
 	"context"
 	"errors"
 	"migtationbot/internal/app"
-	"strings"
 
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 )
 
-type CountryServiceImpl struct {
-	repo      CountryRepository
+type ServiceImpl struct {
+	repo      Repository
 	trManager *manager.Manager
 }
 
-func NewCountryService(repo CountryRepository, trManager *manager.Manager) CountryService {
-	return &CountryServiceImpl{repo: repo, trManager: trManager}
+func NewCountryService(repo Repository, trManager *manager.Manager) Service {
+	return &ServiceImpl{repo: repo, trManager: trManager}
 }
 
-func (s *CountryServiceImpl) FindByCode(ctx context.Context, code string) (*Country, error) {
-	if code == "" {
-		return nil, app.ErrEmptyCountryCode
-	}
-	code = strings.ToUpper(code)
-	country, err := s.repo.GetCountryByCode(ctx, code)
-	if err != nil {
-		return nil, err
-	}
-	return country, nil
-}
-
-func (s *CountryServiceImpl) List(ctx context.Context) (*[]Country, error) {
+func (s *ServiceImpl) List(ctx context.Context) (*[]Country, error) {
 	countries, err := s.repo.List(ctx)
 	if err != nil {
 		return nil, err
@@ -38,7 +25,7 @@ func (s *CountryServiceImpl) List(ctx context.Context) (*[]Country, error) {
 	return countries, nil
 }
 
-func (s *CountryServiceImpl) GetCountryWithTrip(ctx context.Context, code string) (*Country, error) {
+func (s *ServiceImpl) GetCountryWithTrip(ctx context.Context, code string) (*Country, error) {
 	var country *Country
 	existing, err := s.repo.GetCountryByCode(ctx, code)
 	if err != nil {
@@ -58,7 +45,7 @@ func (s *CountryServiceImpl) GetCountryWithTrip(ctx context.Context, code string
 	return country, nil
 }
 
-func (s *CountryServiceImpl) GetAllTrips(ctx context.Context) (TripType, error) {
+func (s *ServiceImpl) GetAllTrips(ctx context.Context) (TripType, error) {
 	tt, err := s.repo.GetAllTrip(ctx)
 
 	if err != nil {
@@ -67,7 +54,7 @@ func (s *CountryServiceImpl) GetAllTrips(ctx context.Context) (TripType, error) 
 	return tt, nil
 }
 
-func (s *CountryServiceImpl) GetCountryContentByTrip(ctx context.Context, code, callback string) (string, error) {
+func (s *ServiceImpl) GetCountryContentByTrip(ctx context.Context, code, callback string) (string, error) {
 	content, err := s.repo.GetContentByCallback(ctx, code, callback)
 	if err != nil {
 		return "", err
@@ -75,7 +62,7 @@ func (s *CountryServiceImpl) GetCountryContentByTrip(ctx context.Context, code, 
 	return content, nil
 }
 
-func (s *CountryServiceImpl) CreateCountry(ctx context.Context, code, name, desc string) error {
+func (s *ServiceImpl) CreateCountry(ctx context.Context, code, name, desc string) error {
 	if code == "" || name == "" || desc == "" {
 		return app.ErrOneOfRequiredFieldsEmpty
 	}
@@ -98,7 +85,7 @@ func (s *CountryServiceImpl) CreateCountry(ctx context.Context, code, name, desc
 
 	return err
 }
-func (s *CountryServiceImpl) CreateTrip(ctx context.Context, name, callback string) error {
+func (s *ServiceImpl) CreateTrip(ctx context.Context, name, callback string) error {
 	if name == "" || callback == "" {
 		return app.ErrOneOfRequiredFieldsEmpty
 	}
@@ -116,7 +103,7 @@ func (s *CountryServiceImpl) CreateTrip(ctx context.Context, name, callback stri
 	return err
 }
 
-func (s *CountryServiceImpl) SetCountryTrip(ctx context.Context, code, cb string) error {
+func (s *ServiceImpl) SetCountryTrip(ctx context.Context, code, cb string) error {
 	if code == "" || cb == "" {
 		return app.ErrOneOfRequiredFieldsEmpty
 	}
@@ -143,7 +130,7 @@ func (s *CountryServiceImpl) SetCountryTrip(ctx context.Context, code, cb string
 	})
 	return err
 }
-func (s *CountryServiceImpl) SetCountryContent(ctx context.Context, countryCode, callback, content string) error {
+func (s *ServiceImpl) SetCountryContent(ctx context.Context, countryCode, callback, content string) error {
 	if countryCode == "" || callback == "" || content == "" {
 		return app.ErrOneOfRequiredFieldsEmpty
 	}
@@ -171,7 +158,7 @@ func (s *CountryServiceImpl) SetCountryContent(ctx context.Context, countryCode,
 	return err
 }
 
-func (s *CountryServiceImpl) PublishCountry(ctx context.Context, countryCode string) error {
+func (s *ServiceImpl) PublishCountry(ctx context.Context, countryCode string) error {
 	if countryCode == "" {
 		return app.ErrOneOfRequiredFieldsEmpty
 	}

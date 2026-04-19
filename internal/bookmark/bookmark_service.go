@@ -7,26 +7,26 @@ import (
 	"migtationbot/internal/user"
 )
 
-type BookmarkServiceImpl struct {
-	BookMarkRepo BookmarkRepository
+type ServiceImpl struct {
+	BookMarkRepo Repository
 
-	UserSVC    user.UserService
-	CountrySVC country.CountryService
+	UserSVC    user.Service
+	CountrySVC country.Service
 }
 
 func NewBookMarkService(
-	userSvc user.UserService,
-	countrySvc country.CountryService,
-	BookmarkRepo BookmarkRepository,
-) BookmarkService {
-	return &BookmarkServiceImpl{
+	userSvc user.Service,
+	countrySvc country.Service,
+	BookmarkRepo Repository,
+) Service {
+	return &ServiceImpl{
 		UserSVC:      userSvc,
 		CountrySVC:   countrySvc,
 		BookMarkRepo: BookmarkRepo,
 	}
 }
 
-func (s *BookmarkServiceImpl) GetUserFavorites(ctx context.Context, userID int64) ([]UserFavorite, error) {
+func (s *ServiceImpl) GetUserFavorites(ctx context.Context, userID int64) ([]UserFavorite, error) {
 	userFavorite, err := s.BookMarkRepo.GetUserFavorite(ctx, userID)
 
 	if err != nil {
@@ -36,7 +36,7 @@ func (s *BookmarkServiceImpl) GetUserFavorites(ctx context.Context, userID int64
 	return userFavorite, nil
 }
 
-func (s *BookmarkServiceImpl) AddFavorite(ctx context.Context, userID int64, code, trip string) error {
+func (s *ServiceImpl) AddFavorite(ctx context.Context, userID int64, code, trip string) error {
 
 	err := s.BookMarkRepo.AddFavorite(ctx, userID, code, trip)
 	if err != nil {
@@ -46,7 +46,7 @@ func (s *BookmarkServiceImpl) AddFavorite(ctx context.Context, userID int64, cod
 	return nil
 }
 
-func (s *BookmarkServiceImpl) RemoveFavorite(ctx context.Context, userID int64, code, trip string) error {
+func (s *ServiceImpl) RemoveFavorite(ctx context.Context, userID int64, code, trip string) error {
 	err := s.BookMarkRepo.RemoveFavorite(ctx, userID, code, trip)
 	if err != nil {
 		return err

@@ -47,16 +47,16 @@ const (
 	countryTripContentColumnTripTypeID = "trip_type_id"
 )
 
-type CountryRepositoryImpl struct {
+type RepositoryImpl struct {
 	db        *pgxpool.Pool
 	ctxGetter *trmpgx.CtxGetter
 }
 
-func NewCountryRepository(db *pgxpool.Pool) CountryRepository {
-	return &CountryRepositoryImpl{db: db, ctxGetter: trmpgx.DefaultCtxGetter}
+func NewCountryRepository(db *pgxpool.Pool) Repository {
+	return &RepositoryImpl{db: db, ctxGetter: trmpgx.DefaultCtxGetter}
 }
 
-func (c *CountryRepositoryImpl) GetCountryByCode(ctx context.Context, code string) (*Country, error) {
+func (c *RepositoryImpl) GetCountryByCode(ctx context.Context, code string) (*Country, error) {
 	const op = "CountryRepository.getByCode"
 	builder := psql.
 		Select(
@@ -88,7 +88,7 @@ func (c *CountryRepositoryImpl) GetCountryByCode(ctx context.Context, code strin
 	return &country, nil
 }
 
-func (c *CountryRepositoryImpl) GetCountryTrip(ctx context.Context, code string) (TripType, error) {
+func (c *RepositoryImpl) GetCountryTrip(ctx context.Context, code string) (TripType, error) {
 	const op = "CountryRepository.GetCountryTrip"
 	builder := psql.
 		Select(
@@ -127,7 +127,7 @@ func (c *CountryRepositoryImpl) GetCountryTrip(ctx context.Context, code string)
 	tripType.Data = trip
 	return tripType, nil
 }
-func (c *CountryRepositoryImpl) List(ctx context.Context) (*[]Country, error) {
+func (c *RepositoryImpl) List(ctx context.Context) (*[]Country, error) {
 	const op = "CountryRepository.List"
 	builder := psql.
 		Select(
@@ -169,7 +169,7 @@ func (c *CountryRepositoryImpl) List(ctx context.Context) (*[]Country, error) {
 	return &countries, nil
 }
 
-func (c *CountryRepositoryImpl) GetAllTrip(ctx context.Context) (TripType, error) {
+func (c *RepositoryImpl) GetAllTrip(ctx context.Context) (TripType, error) {
 	const op = "CountryRepository.GetAllTrip"
 	builder := psql.
 		Select(
@@ -203,7 +203,7 @@ func (c *CountryRepositoryImpl) GetAllTrip(ctx context.Context) (TripType, error
 	return tripType, nil
 }
 
-func (c *CountryRepositoryImpl) GetTripByCallback(ctx context.Context, callback string) (TripType, error) {
+func (c *RepositoryImpl) GetTripByCallback(ctx context.Context, callback string) (TripType, error) {
 	const op = "CountryRepository.GetTripByCallback"
 	builder := psql.
 		Select(tripTypesColumnID, tripTypeColumnName, tripTypeColumnCallback).
@@ -231,7 +231,7 @@ func (c *CountryRepositoryImpl) GetTripByCallback(ctx context.Context, callback 
 	return tripType, nil
 }
 
-func (c *CountryRepositoryImpl) GetContentByCallback(ctx context.Context, code, callback string) (string, error) {
+func (c *RepositoryImpl) GetContentByCallback(ctx context.Context, code, callback string) (string, error) {
 	const op = "CountryRepository.GetContentByCallback"
 	builder := psql.
 		Select(
@@ -255,7 +255,7 @@ func (c *CountryRepositoryImpl) GetContentByCallback(ctx context.Context, code, 
 	return content, nil
 }
 
-func (c *CountryRepositoryImpl) CreateCountry(ctx context.Context, country *Country) error {
+func (c *RepositoryImpl) CreateCountry(ctx context.Context, country *Country) error {
 	const op = "CountryRepository.CreateCountry"
 
 	builder := psql.
@@ -273,7 +273,7 @@ func (c *CountryRepositoryImpl) CreateCountry(ctx context.Context, country *Coun
 	return nil
 }
 
-func (c *CountryRepositoryImpl) CreateTrip(ctx context.Context, name, callback string) error {
+func (c *RepositoryImpl) CreateTrip(ctx context.Context, name, callback string) error {
 	const op = "CountryRepository.CreateTrip"
 
 	builder := psql.
@@ -291,7 +291,7 @@ func (c *CountryRepositoryImpl) CreateTrip(ctx context.Context, name, callback s
 	return nil
 }
 
-func (c *CountryRepositoryImpl) SetCountryTripType(ctx context.Context, countryId, tripTypeId int) error {
+func (c *RepositoryImpl) SetCountryTripType(ctx context.Context, countryId, tripTypeId int) error {
 	const op = "CountryRepository.SetTripToCountry"
 	builder := psql.
 		Insert(countryTripTypeTableName).
@@ -308,7 +308,7 @@ func (c *CountryRepositoryImpl) SetCountryTripType(ctx context.Context, countryI
 	return nil
 }
 
-func (c *CountryRepositoryImpl) SetCountryTripContent(ctx context.Context, countryId, tripId int, content string) error {
+func (c *RepositoryImpl) SetCountryTripContent(ctx context.Context, countryId, tripId int, content string) error {
 	const op = "CountryRepository.SetCountryContent"
 
 	builder := psql.
@@ -325,7 +325,7 @@ func (c *CountryRepositoryImpl) SetCountryTripContent(ctx context.Context, count
 	}
 	return nil
 }
-func (c *CountryRepositoryImpl) PublishCountry(ctx context.Context, countryID int) error {
+func (c *RepositoryImpl) PublishCountry(ctx context.Context, countryID int) error {
 	const op = "CountryRepository.PublishCountry"
 	builder := psql.
 		Update(countryTableName).

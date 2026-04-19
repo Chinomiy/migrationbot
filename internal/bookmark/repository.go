@@ -19,15 +19,15 @@ var (
 	CountryTripContentColumnName = "country_trip_content_id"
 )
 
-type BookmarkRepositoryImpl struct {
+type RepositoryImpl struct {
 	db *pgxpool.Pool
 }
 
-func NewBookmarkRepository(db *pgxpool.Pool) BookmarkRepository {
-	return &BookmarkRepositoryImpl{db: db}
+func NewBookmarkRepository(db *pgxpool.Pool) Repository {
+	return &RepositoryImpl{db: db}
 }
 
-func (r *BookmarkRepositoryImpl) GetUserFavorite(ctx context.Context, userID int64) ([]UserFavorite, error) {
+func (r *RepositoryImpl) GetUserFavorite(ctx context.Context, userID int64) ([]UserFavorite, error) {
 	const op = "BookmarkRepository.GetUserFavorite"
 	builder := psql.
 		Select(
@@ -69,7 +69,7 @@ func (r *BookmarkRepositoryImpl) GetUserFavorite(ctx context.Context, userID int
 	return userFavorites, nil
 }
 
-func (r *BookmarkRepositoryImpl) AddFavorite(ctx context.Context, userID int64, code, trip string) error {
+func (r *RepositoryImpl) AddFavorite(ctx context.Context, userID int64, code, trip string) error {
 	const op = "BookmarkRepository.AddFavorite"
 	builder := psql.
 		Insert(UserFavoriteTableName).
@@ -99,7 +99,7 @@ func (r *BookmarkRepositoryImpl) AddFavorite(ctx context.Context, userID int64, 
 	return nil
 }
 
-func (r *BookmarkRepositoryImpl) RemoveFavorite(ctx context.Context, userID int64, code, trip string) error {
+func (r *RepositoryImpl) RemoveFavorite(ctx context.Context, userID int64, code, trip string) error {
 	const op = "BookmarkRepository.RemoveFavorite"
 	builder := psql.
 		Delete(UserFavoriteTableName).

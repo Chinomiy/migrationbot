@@ -24,16 +24,16 @@ var (
 	userTgUsername = "tg_username"
 )
 
-type UserRepositoryImpl struct {
+type RepositoryImpl struct {
 	db        *pgxpool.Pool
 	ctxGetter *trmpgx.CtxGetter
 }
 
-func NewUserRepository(db *pgxpool.Pool) UserRepository {
-	return &UserRepositoryImpl{db: db, ctxGetter: trmpgx.DefaultCtxGetter}
+func NewUserRepository(db *pgxpool.Pool) Repository {
+	return &RepositoryImpl{db: db, ctxGetter: trmpgx.DefaultCtxGetter}
 }
 
-func (r *UserRepositoryImpl) Create(ctx context.Context, user *User) error {
+func (r *RepositoryImpl) Create(ctx context.Context, user *User) error {
 	const op = "UserRepositoryImpl.Create"
 
 	builder := psql.
@@ -55,7 +55,7 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *User) error {
 	}
 	return nil
 }
-func (r *UserRepositoryImpl) Get(ctx context.Context, id int64) (*User, error) {
+func (r *RepositoryImpl) Get(ctx context.Context, id int64) (*User, error) {
 	const op = "UserRepositoryImpl.Get"
 
 	builder := psql.
@@ -86,7 +86,7 @@ func (r *UserRepositoryImpl) Get(ctx context.Context, id int64) (*User, error) {
 	return user, nil
 }
 
-func (r *UserRepositoryImpl) UpdateRole(ctx context.Context, tgUsername string, newRole string) error {
+func (r *RepositoryImpl) UpdateRole(ctx context.Context, tgUsername string, newRole string) error {
 	const op = "UserRepositoryImpl.UpdateRole"
 
 	builder := psql.

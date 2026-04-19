@@ -36,6 +36,7 @@ func (h *Handler) CountryDetails(ctx context.Context, args Args) error {
 	code := getCodeFromCallbackData(args.rawCBData)
 	trip := getTripFromCallbackData(args.rawCBData)
 	content, err := h.countrySVC.GetCountryContentByTrip(ctx, code, trip)
+
 	if err != nil {
 		return err
 	}
