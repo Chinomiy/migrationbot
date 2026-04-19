@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"migtationbot/logger"
 	"os"
 
@@ -13,26 +14,38 @@ type Config struct {
 	AdminToken string
 }
 
-func MustLoad() (*Config, error) {
-	err := godotenv.Load()
-	if err != nil {
-		logger.Info("Error loading .env file")
+var (
+	ErrTGTokenNotFound    = errors.New("TG token not found")
+	ErrDBURLNotFound      = errors.New("DB URL not found")
+	ErrAdminTokenNotFound = errors.New("Admin token not found")
+)
+
+func MustLoad() *Config {
+	if err := godotenv.Load(); err != nil {
+		logger.Info(".env not found (ok in prod)")
 	}
+
 	token := os.Getenv("TG_TOKEN")
 	if token == "" {
-		logger.Info("TG_TOKEN env variable not set")
+		logger.Error(ErrTGTokenNotFound)
+		os.Exit(1)
 	}
+
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		logger.Info("DATABASE_URL env variable not set")
+		logger.Error(ErrDBURLNotFound)
+		os.Exit(1)
 	}
+
 	adminToken := os.Getenv("ADMIN_TOKEN")
 	if adminToken == "" {
-		logger.Info("ADMIN_TOKEN env variable not set")
+		logger.Error(ErrAdminTokenNotFound)
+		os.Exit(1)
 	}
+
 	return &Config{
 		TgToken:    token,
 		DBURL:      dbURL,
 		AdminToken: adminToken,
-	}, nil
+	}
 }
