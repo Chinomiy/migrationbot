@@ -22,10 +22,7 @@ import (
 func main() {
 	logger.Init()
 
-	cfg, err := config.MustLoad()
-	if err != nil {
-		logger.Error(err)
-	}
+	cfg, _ := config.MustLoad()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
@@ -74,6 +71,8 @@ func main() {
 	}
 
 	router.RegisterHandler(h)
+
+	logger.Info("bot started")
 
 	h.B.Start(ctx)
 }
