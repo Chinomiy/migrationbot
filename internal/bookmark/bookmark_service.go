@@ -26,6 +26,7 @@ func NewBookMarkService(
 	}
 }
 
+// TODO ПЕРЕДВАТЬ В РЕПОЗИТОРИЙ УЖЕ ГОТЫЙ ОБЬЕКТ А НЕ СОБИРАТЬ ЕГО В РЕПОЗИТОРИИ + ДОБАВИТЬ БИЗНЕСОВЫЕ ПРОВЕРКИ ЕСЛИ ЕСТЬ
 func (s *ServiceImpl) GetUserFavorites(ctx context.Context, userID int64) ([]UserFavorite, error) {
 	userFavorite, err := s.BookMarkRepo.GetUserFavorite(ctx, userID)
 

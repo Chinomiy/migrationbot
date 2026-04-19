@@ -66,6 +66,5 @@ func (u *userStateStorage) Reset(userID int64, initial State) error {
 
 	u.Storage[userID] = []State{initial}
 
-	fmt.Println(u.Storage[userID])
 	return nil
 }

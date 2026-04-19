@@ -67,6 +67,11 @@ func (r *UpdateHandler) UpdateTextHandler(ctx context.Context, b *bot.Bot, u *mo
 		logger.Error(err)
 		return
 	}
+	logger.Infof("REQUEST TO TEXT HANDLER\n RAW TEXT: %s \nUserid: %s \n current StateID: %s",
+		args.rawText,
+		args.userID,
+		current.ID,
+	)
 	//берем айдишник отправленого ботом сообщения - в тг из message.ID - достается ID отправленого юзером сообщеиня
 	args.msgID = current.LastMsg
 
@@ -89,7 +94,6 @@ func (r *UpdateHandler) UpdateCallbackHandler(ctx context.Context, b *bot.Bot, u
 		return
 	}
 
-	logger.Infof("RAW CALLBACK QUERY: %s", u.CallbackQuery.Data)
 	args := setupArgsFromCallback(u)
 
 	defer func(b *bot.Bot, ctx context.Context, params *bot.AnswerCallbackQueryParams) {
@@ -100,6 +104,11 @@ func (r *UpdateHandler) UpdateCallbackHandler(ctx context.Context, b *bot.Bot, u
 	}(b, ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: u.CallbackQuery.ID,
 	})
+
+	logger.Infof("REQUEST TO CALLBACK HANDLER\n RAW CALLBACK: %s \nUserid: %s \n",
+		args.rawCBData,
+		args.userID,
+	)
 
 	if args.rawCBData == app.CallbackMainMenu {
 		err := r.f.Reset(args.userID)
@@ -145,6 +154,9 @@ func (r *UpdateHandler) UpdateCallbackHandler(ctx context.Context, b *bot.Bot, u
 		return
 	}
 	if cb, ok := r.handlers[newState]; ok {
+
+		logger.Infof("RESOLVED STATE: %v", newState)
+
 		err := cb(ctx, args)
 		if err != nil {
 			logger.Error(err)
