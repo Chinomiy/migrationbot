@@ -19,6 +19,14 @@ func BackKeyboard() *models.InlineKeyboardMarkup {
 		},
 	}
 }
+func MainMenuButton() []models.InlineKeyboardButton {
+	return []models.InlineKeyboardButton{
+		{
+			Text:         app.MainMenuButton,
+			CallbackData: app.CallbackMainMenu,
+		},
+	}
+}
 func BackButton() []models.InlineKeyboardButton {
 	return []models.InlineKeyboardButton{
 		{

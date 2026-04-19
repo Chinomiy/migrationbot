@@ -1,40 +1,67 @@
 package keyboard
 
-import (
-	"migtationbot/internal/app"
-
-	"github.com/go-telegram/bot/models"
-)
-
+/*
 func ManagerMenuKeyboard() *models.InlineKeyboardMarkup {
 	return &models.InlineKeyboardMarkup{
 		InlineKeyboard: [][]models.InlineKeyboardButton{
 			{
 				{
-					Text:         "Главное меню",
+					Text:         app.ManagerMainMenu,
 					CallbackData: app.CallbackMainMenu,
 				},
 			},
 			{
 				{
-					Text:         "Создать страну",
+					Text:         app.ManagerCreateCountry,
 					CallbackData: app.CallbackManagerCreateCountry,
 				},
 			},
 			{
 				{
-					Text:         "Создать тип поездки",
-					CallbackData: "242",
+					Text:         app.ManagerCrateTrip,
+					CallbackData: app.CallbackManagerCreateTrip,
 				},
 				{
-					Text:         "Добавить тип поездки к стране",
-					CallbackData: "5215",
+					Text:         app.ManagerSetCountryTrip,
+					CallbackData: app.CallbackManagerSetTripToCountry,
 				},
 				{
-					Text:         "Добавить контент к типу поездки стране",
-					CallbackData: "5215",
+					Text:         app.ManagerSetCountryContent,
+					CallbackData: app.CallbackManagerSetContentToCountry,
 				},
 			},
 		},
 	}
 }
+
+func StartCreateCountry() *models.InlineKeyboardMarkup {
+	return &models.InlineKeyboardMarkup{
+		InlineKeyboard: [][]models.InlineKeyboardButton{
+			{
+				{
+					Text:         "Начать",
+					CallbackData: app.CallbackManagerCreateCountryName,
+					Style:        "primary",
+				},
+			},
+			BackButton(),
+		},
+	}
+}
+
+func ConfirmCreateCountry() *models.InlineKeyboardMarkup {
+	return &models.InlineKeyboardMarkup{
+		InlineKeyboard: [][]models.InlineKeyboardButton{
+			{
+				{
+					Text:         "Подтвердить",
+					CallbackData: app.CallbackManagerCreateCountryName,
+					Style:        "success",
+				},
+			},
+			BackButton(),
+		},
+	}
+}
+
+*/

@@ -50,8 +50,7 @@ func (u *userStateStorage) Back(userID int64) (State, error) {
 		return stack[0], nil
 	}
 	u.Storage[userID] = stack[:len(stack)-1]
-	fmt.Println("-------------After BACK----------------")
-	fmt.Println(u.Storage[userID])
+
 	return u.Storage[userID][len(u.Storage[userID])-1], nil
 }
 func (u *userStateStorage) Exists(userID int64) (bool, error) {
@@ -66,5 +65,7 @@ func (u *userStateStorage) Reset(userID int64, initial State) error {
 	defer u.mu.Unlock()
 
 	u.Storage[userID] = []State{initial}
+
+	fmt.Println(u.Storage[userID])
 	return nil
 }

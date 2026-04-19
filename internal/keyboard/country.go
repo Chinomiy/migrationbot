@@ -13,6 +13,7 @@ func CountryKeyboard(code, trip string) *models.InlineKeyboardMarkup {
 
 	keyboard = append(keyboard, BackButton())
 	keyboard = append(keyboard, AddBookmarkButton(code, trip))
+	keyboard = append(keyboard, MainMenuButton())
 
 	return &models.InlineKeyboardMarkup{
 		InlineKeyboard: keyboard,
@@ -39,6 +40,7 @@ func CountryMenu(c *[]country.Country) *models.InlineKeyboardMarkup {
 		keyboard = append(keyboard, row)
 	}
 	keyboard = append(keyboard, BackButton())
+	keyboard = append(keyboard, MainMenuButton())
 	return &models.InlineKeyboardMarkup{
 		InlineKeyboard: keyboard,
 	}
@@ -66,6 +68,7 @@ func CountryTripVariants(c *country.Country) *models.InlineKeyboardMarkup {
 		keyboard = append(keyboard, row)
 	}
 	keyboard = append(keyboard, BackButton())
+	keyboard = append(keyboard, MainMenuButton())
 
 	return &models.InlineKeyboardMarkup{
 		InlineKeyboard: keyboard,

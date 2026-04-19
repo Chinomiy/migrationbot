@@ -5,7 +5,7 @@ import (
 	"migtationbot/fsm"
 	"migtationbot/internal/app"
 	"migtationbot/internal/bookmark"
-	bot2 "migtationbot/internal/bot"
+	b "migtationbot/internal/bot"
 	"migtationbot/internal/config"
 	"migtationbot/internal/country"
 	"migtationbot/internal/user"
@@ -39,10 +39,10 @@ func main() {
 	//FSM
 	f := fsm.New(app.StateMainMenu)
 
-	router := bot2.NewRouter(f)
+	router := b.NewUpdateHandler(f)
 	opts := []bot.Option{
-		bot.WithMessageTextHandler("/start", bot.MatchTypeExact, router.TextRoute),
-		bot.WithCallbackQueryDataHandler("", bot.MatchTypePrefix, router.CallbackRoute),
+		bot.WithMessageTextHandler("", bot.MatchTypePrefix, router.UpdateTextHandler),
+		bot.WithCallbackQueryDataHandler("", bot.MatchTypePrefix, router.UpdateCallbackHandler),
 	}
 
 	trManager, err := trmanager.New(trmpgx.NewDefaultFactory(pool))
@@ -63,7 +63,7 @@ func main() {
 	userRepo := user.NewUserRepository(pool)
 	userSvc := user.NewUserService(userRepo, trManager)
 
-	h := bot2.NewHandler(
+	h := b.NewHandler(
 		userSvc,
 		bookmarkSvc,
 		countrySvc,

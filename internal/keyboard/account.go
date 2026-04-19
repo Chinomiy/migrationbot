@@ -19,3 +19,12 @@ func AccountMainMenu() *models.InlineKeyboardMarkup {
 		},
 	}
 }
+
+func FAQMenu() *models.InlineKeyboardMarkup {
+	return &models.InlineKeyboardMarkup{
+		InlineKeyboard: [][]models.InlineKeyboardButton{
+			BackButton(),
+			MainMenuButton(),
+		},
+	}
+}

@@ -11,28 +11,27 @@ const (
 	StateAccount            fsm.StateID = "account"
 	StateFavorite           fsm.StateID = "favorite"
 	StateBookmarkDetails    fsm.StateID = "bookmark_details"
+	StateFAQ                fsm.StateID = "faq"
+	StateHelp                           = fsm.StateID("help")
 
 	StateNoChange fsm.StateID = "no_change"
-
-	// StateManagerMenu менеджерские стетйы
-	StateManagerMenu          fsm.StateID = "manager_menu"
-	StateManagerCreateCountry fsm.StateID = "manager_create_country"
 )
 
 const (
+	// НЕ МЕНЯЮТ СТЕЙТ
+	CallbackAddFavorite = "add_favorite"
+	CallbackFavorite    = "favorite"
+	CallbackBack        = "back"
 	// CallbackMainMenu user callback
 	CallbackMainMenu           = "main_menu"
 	CallbackCountryMenu        = "country_menu"
 	CallbackCountryDetailsMenu = "country_details_menu"
 	CallbackCountry            = "country"
-	CallbackBack               = "back"
-	CallbackAccount            = "account"
-	CallbackAddFavorite        = "add_favorite"
-	CallbackFavorite           = "favorite"
-	CallbackRemoveBookmark     = "remove_bookmark"
-	CallbackBookmarkDetails    = "bookmark_details"
+	CallbackFAQ                = "faq"
+	CallbackHelp               = "help"
 
-	// CallbackManagerMenu manager callback
-	CallbackManagerMenu          = "manager_menu"
-	CallbackManagerCreateCountry = "create_country"
+	CallbackAccount = "account"
+
+	CallbackRemoveBookmark  = "remove_bookmark"
+	CallbackBookmarkDetails = "bookmark_details"
 )

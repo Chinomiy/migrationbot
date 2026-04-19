@@ -24,15 +24,11 @@ func MainMenuKeyboard() *models.InlineKeyboardMarkup {
 			{
 				{
 					Text:         app.MainMenuFAQ,
-					CallbackData: "242", // доделать просто экран с текстом + назад
+					CallbackData: app.CallbackFAQ, // доделать просто экран с текстом + назад
 				},
 				{
 					Text:         app.MainMenuHelps,
-					CallbackData: "5215", // доделать, просто экран с моим тг + назад
-				},
-				{
-					Text:         "менеджерское меню",
-					CallbackData: app.CallbackManagerMenu,
+					CallbackData: app.CallbackHelp, // доделать, просто экран с моим тг + назад
 				},
 			},
 		},

@@ -38,6 +38,8 @@ func UserBookmarks(c []bookmark.UserFavorite) *models.InlineKeyboardMarkup {
 		keyboard = append(keyboard, row)
 	}
 	keyboard = append(keyboard, BackButton())
+	keyboard = append(keyboard, MainMenuButton())
+
 	return &models.InlineKeyboardMarkup{
 		InlineKeyboard: keyboard,
 	}
@@ -48,6 +50,7 @@ func BookmarkDetails(code, trip string) *models.InlineKeyboardMarkup {
 
 	keyboard = append(keyboard, BackButton())
 	keyboard = append(keyboard, DeleteBookmarkButton(code, trip))
+	keyboard = append(keyboard, MainMenuButton())
 
 	return &models.InlineKeyboardMarkup{
 		InlineKeyboard: keyboard,

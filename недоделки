@@ -1,0 +1,110 @@
+	switch current.ID {
+
+	case app.StateManagerCreateCountryName:
+		if err := r.f.Transition(args.userID, app.StateManagerCreateCountryCode, current.LastMsg, args); err != nil {
+			logger.Error(err)
+			return
+		}
+		if cb, ok := r.handlers[app.CallbackManagerCreateCountryCode]; ok {
+			err := cb(ctx, args)
+			if err != nil {
+				logger.Error(err)
+				return
+			}
+		}
+		r.createCountryData.Name = args.rawText
+	case app.StateManagerCreateCountryCode:
+		if err := r.f.Transition(args.userID, app.StateManagerCreateCountryDescription, current.LastMsg, args); err != nil {
+			logger.Error(err)
+			return
+		}
+		if cb, ok := r.handlers[app.StateManagerCreateCountryDescription]; ok {
+			err := cb(ctx, args)
+			if err != nil {
+				logger.Error(err)
+				return
+			}
+		}
+		r.createCountryData.Code = args.rawText
+	case app.StateManagerCreateCountryDescription:
+		if err := r.f.Transition(args.userID, app.StateManagerCreateCountryConfirm, current.LastMsg, args); err != nil {
+			logger.Error(err)
+			return
+		}
+		if cb, ok := r.handlers[app.StateManagerCreateCountryConfirm]; ok {
+			err := cb(ctx, args)
+			if err != nil {
+				logger.Error(err)
+				return
+			}
+		}
+		r.createCountryData.Description = args.rawText
+	}
+	fmt.Println(r.createCountryData)
+
+
+
+	bot/manager.go
+	package bot
+
+    import (
+    	"context"
+    	"fmt"
+    	"migtationbot/internal/app"
+    	"migtationbot/internal/keyboard"
+
+    	"github.com/go-telegram/bot"
+    )
+
+    func (h *Handler) ManagerMenu(ctx context.Context, args Args) error {
+
+    	kb := keyboard.ManagerMenuKeyboard()
+    	return h.editMassage(ctx, args.userID, args.msgID, "Менеджерское меню", kb)
+    }
+
+    func (h *Handler) CreateCountry(ctx context.Context, args Args) error {
+    	kb := keyboard.StartCreateCountry()
+    	_, _ = h.B.SendMessage(ctx, &bot.SendMessageParams{
+    		ChatID:      args.userID,
+    		Text:        app.CreateCountry,
+    		ReplyMarkup: kb,
+    	})
+    	return nil
+    }
+    func (h *Handler) CreateCountryName(ctx context.Context, args Args) error {
+    	kb := keyboard.BackKeyboard()
+    	return h.editMassage(ctx, args.userID, args.msgID, app.CreateCountryName, kb)
+    }
+    func (h *Handler) CreateCountryCode(ctx context.Context, args Args) error {
+    	fmt.Println("IN CODE !!!!")
+    	content := fmt.Sprintf(app.CreateCountryCode+"%s", "test")
+    	return h.editMassage(ctx, args.userID, args.msgID,
+    		content,
+    		keyboard.BackKeyboard(),
+    	)
+    }
+
+    func (h *Handler) CreateCountryDescription(ctx context.Context, args Args) error {
+    	fmt.Println("IN DESC !!!!")
+    	content := fmt.Sprintf(app.CreateCountryDesc+"%s", "test151235135")
+    	return h.editMassage(ctx, args.userID, args.msgID,
+    		content,
+    		keyboard.BackKeyboard(),
+    	)
+    }
+
+    func (h *Handler) CreateCountryConfirm(ctx context.Context, args Args) error {
+    	fmt.Println(args)
+    	content := fmt.Sprintf("Подтверди создание страны: ")
+    	return h.editMassage(ctx, args.userID, args.msgID,
+    		content,
+    		keyboard.ConfirmCreateCountry(),
+    	)
+    }
+
+bot/model.go
+type CreateCountryData struct {
+	Name        string
+	Code        string
+	Description string
+}

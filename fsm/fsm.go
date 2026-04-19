@@ -1,6 +1,7 @@
 package fsm
 
 import (
+	"fmt"
 	"migtationbot/logger"
 ) // главный экран -> список стран -> выбор страны -> выбор типа поездки -> информация о поездке
 
@@ -8,15 +9,15 @@ const NoChange StateID = "no_change"
 
 type StateID = string
 type State struct {
-	ID   StateID
-	Data []any
+	ID      StateID
+	LastMsg int
+	Data    []any
 }
 type FSM struct {
 	initialStateID StateID
 	userStates     UserStateStorage
 }
 
-// map[string]mao[string]string
 func New(initialStateName StateID,
 ) *FSM {
 	s := &FSM{
@@ -28,12 +29,13 @@ func New(initialStateName StateID,
 func (f *FSM) Transition(
 	userID int64,
 	stateID StateID,
+	lstMsg int,
 	args ...any,
 ) error {
 	if stateID == NoChange {
 		return nil
 	}
-	state := State{ID: stateID, Data: args}
+	state := State{ID: stateID, Data: args, LastMsg: lstMsg}
 	if err := f.userStates.Push(userID, state); err != nil {
 		return err
 	}
@@ -46,7 +48,7 @@ func (f *FSM) Current(userID int64) (State, error) {
 		return State{}, err
 	}
 	if !ok {
-		initial := State{ID: f.initialStateID, Data: nil}
+		initial := State{ID: f.initialStateID, Data: nil, LastMsg: 0}
 		if err := f.userStates.Push(userID, initial); err != nil {
 			return State{}, err
 		}
@@ -55,7 +57,8 @@ func (f *FSM) Current(userID int64) (State, error) {
 	return f.userStates.Get(userID)
 }
 func (f *FSM) Reset(userID int64) error {
-	initial := State{ID: f.initialStateID, Data: nil}
+	initial := State{ID: f.initialStateID, Data: nil, LastMsg: 0}
+	fmt.Println(f.userStates.Reset(userID, initial))
 	return f.userStates.Reset(userID, initial)
 }
 func (f *FSM) Back(userID int64) error {
