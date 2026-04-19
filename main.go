@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"migtationbot/fsm"
 	"migtationbot/internal/app"
 	"migtationbot/internal/bookmark"
@@ -17,6 +18,7 @@ import (
 	trmanager "github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	"github.com/go-telegram/bot"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pressly/goose/v3"
 )
 
 func main() {
@@ -32,6 +34,7 @@ func main() {
 		logger.Error(err)
 		os.Exit(1)
 	}
+	runMigrations(cfg.DBURL)
 	//FSM
 	f := fsm.New(app.StateMainMenu)
 
@@ -75,4 +78,25 @@ func main() {
 	logger.Info("bot started")
 
 	h.B.Start(ctx)
+}
+
+func runMigrations(dbURL string) {
+	db, err := sql.Open("pgx", dbURL)
+	if err != nil {
+		logger.Error(err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	if err := goose.SetDialect("postgres"); err != nil {
+		logger.Error(err)
+		os.Exit(1)
+	}
+
+	if err := goose.Up(db, "migrations"); err != nil {
+		logger.Error(err)
+		os.Exit(1)
+	}
+
+	logger.Info("migrations applied")
 }
