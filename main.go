@@ -14,6 +14,8 @@ import (
 	"os"
 	"os/signal"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
+
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	trmanager "github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	"github.com/go-telegram/bot"
