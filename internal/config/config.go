@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"migtationbot/logger"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -16,19 +16,19 @@ type Config struct {
 func MustLoad() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		logger.Info("Error loading .env file")
 	}
 	token := os.Getenv("TG_TOKEN")
 	if token == "" {
-		log.Fatal("TG_TOKEN env variable not set")
+		logger.Info("TG_TOKEN env variable not set")
 	}
-	dbURL := os.Getenv("DB_URL")
+	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		log.Fatal("DB_URL env variable not set")
+		logger.Info("DATABASE_URL env variable not set")
 	}
 	adminToken := os.Getenv("ADMIN_TOKEN")
 	if adminToken == "" {
-		log.Fatal("ADMIN_TOKEN env variable not set")
+		logger.Info("ADMIN_TOKEN env variable not set")
 	}
 	return &Config{
 		TgToken:    token,
