@@ -23,6 +23,7 @@ func main() {
 	logger.Init()
 
 	cfg, _ := config.MustLoad()
+	cfg.DBURL = os.Getenv("DATABASE_URL")
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
