@@ -20,11 +20,11 @@ var callbackStateMap = map[string]fsm.StateID{
 	app.CallbackMainMenu:           app.StateMainMenu,
 	app.CallbackFAQ:                app.StateFAQ,
 	app.CallbackHelp:               app.StateHelp,
-
+	app.CallbackBookmarkDetails:    app.StateBookmarkDetails,
 	//manager создание страны
 	/*
 		app.CallbackManagerMenu:                     app.StateManagerMenu,
-		app.CallbackBookmarkDetails:                 app.StateBookmarkDetails,
+
 		app.CallbackManagerCreateCountry:            app.StateManagerCreateCountry,
 		app.CallbackManagerCreateCountryCode:        app.StateManagerCreateCountryCode,
 		app.CallbackManagerCreateCountryDescription: app.StateManagerCreateCountryDescription,
